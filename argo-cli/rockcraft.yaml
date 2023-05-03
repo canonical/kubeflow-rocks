@@ -1,0 +1,32 @@
+name: argo-cli
+summary: "Argo Server rock"
+description: "CLI part the Argo bundle"
+version: 3.3.8_3.3
+license: Apache-2.0
+base: ubuntu:22.04
+services:
+  argo-cli:
+    override: replace
+    summary: "argo-cli service"
+    command: argo
+platforms:
+  amd64:
+parts:
+  build:
+    plugin: make
+    source: dist/argo
+  dump-files:
+    plugin: dump
+    source: https://github.com/argoproj/argo-workflows
+    type: git
+    source-tag: v3.3.8
+    build-snaps:
+      - go/1.17/stable
+    build-packages:
+      - apt
+    stage-packages:
+      - netbase
+      - tzdata
+    override-build: |
+      cp hack /etc/ssh/
+      cp hack/nsswitch.conf /etc/
