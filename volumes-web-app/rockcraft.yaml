@@ -29,6 +29,7 @@ parts:
     source-depth: 1
     build-packages:
       - python3-venv
+      - python-setuptools
     override-build: |
       pip3 install setuptools
       cd components/crud-web-apps/common/backend
