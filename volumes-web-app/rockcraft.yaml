@@ -7,7 +7,7 @@ description: |
   objects.
 version: "0.0.1"  # FIXME where do I get it from?
 license: Apache-2.0
-base: ubuntu:20.04  # TODO try with "bare"
+base: ubuntu:22.04  # TODO try with "bare"
 services:
   serve:
     override: replace
@@ -29,12 +29,14 @@ parts:
     source-depth: 1
     build-packages:
       - python3-venv
-      - python-setuptools
+      - python3-setuptools
     override-build: |
-      pip3 install setuptools
+      python3 -m pip install wheel
       cd components/crud-web-apps/common/backend
       python3 setup.py bdist_wheel
-      cp -r src $CRAFT_PART_STAGE  # TODO why copy src if we build a wheel?
+      cp dist/kubeflow-1.1-py3-none-any.whl $CRAFT_STAGE
+    override-stage: |
+      cp kubeflow-1.1-py3-none-any.whl $CRAFT_PRIME
 
   frontend-lib:
     plugin: nil
@@ -78,6 +80,7 @@ parts:
     source-depth: 1
     build-packages:
       - python3-venv
+      - python3-setuptools
     override-build: |
       pip3 install $CRAFT_PART_STAGE/src  # FIXME
       pip3 install -r components/crud-web-apps/volumes/backend/requirements.txt
