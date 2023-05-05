@@ -1,3 +1,4 @@
+---
 name: volumes-web-app
 summary: Volumes Web App
 description: |
@@ -19,90 +20,131 @@ services:
 platforms:
   amd64:
 
+definitions:
+  kubeflow-source: &kubeflow-source
+    source: https://github.com/kubeflow/kubeflow
+    source-type: git
+    source-tag: v1.7-branch  # upstream branch
+    source-depth: 1
+
 parts:
   backend:
-    plugin: python
-    source: https://github.com/kubeflow/kubeflow
-    source-type: git
-    source-tag: v1.7-branch # upstream branch
-    source-depth: 1
-    python-packages:
-      - ./components/crud-web-apps/common/backend
+    plugin: nil
+    <<: *kubeflow-source
     build-packages:
       - python3-venv
-    #override-build: |
-      #TODO: use PYTHON_SHELL_INTERPRETER
-      #TODO use path in python-packages
-      #craftctl default
-      #pip install ./components/crud-web-apps/common/backend
-      #cd components/crud-web-apps/common/backend
-      #python3 setup.py bdist_wheel
-
+    override-build: |
+      cd components/crud-web-apps/common/backend
+      python3 setup.py bdist_wheel
 
   frontend-lib:
-    source: https://github.com/kubeflow/kubeflow
-    source-type: git
-    source-tag: v1.7-branch # upstream branch
-    source-depth: 1
-    plugin: npm
-    npm-include-node: true
-    npm-node-version: "12.22.9"
-    override-build: |
-      #craftctl default
-      cd components/crud-web-apps/common/frontend/kubeflow-common-lib
-      craftctl default
-      #NG_CLI_ANALYTICS="ci" npm ci
-      #npm run build
-      #cp -r dist/kubeflow "${CRAFT_PART_INSTALL}/kubeflow"
-    stage-packages:
-      - bash # this is for debugging only, should be removed for production
-
-  frontend:
-    after: [frontend-lib]
-    source: https://github.com/kubeflow/kubeflow
-    source-type: git
-    source-tag: v1.7-branch # upstream branch
-    source-depth: 1
-    plugin: npm
-    npm-include-node: true
-    npm-node-version: "12.22.9"
-    override-build: |
-      cd components/crud-web-apps/volumes/frontend
-      craftctl default
-      #NG_CLI_ANALYTICS="ci" npm ci
-      #cp -r "${CRAFT_PART_STAGE}/kubeflow" ./node_modules/kubeflow
-      #npm run build -- --output-path="${CRAFT_PART_INSTALL}/default" --configuration=production
-      
-      #set -xe
-      #cd $CRAFT_PART_SRC/components/centraldashboard/
-
-      # set environment variables
-      #export BUILD_VERSION=$(git describe --abbrev=0 --tags)
-      #export BUILD_COMMIT=$(git rev-parse HEAD)
-
-      # build
-      #npm rebuild
-      #npm install
-      #npm test
-      #npm run build
-      #npm prune --production
-      
-      # install build artifacts
-      #mkdir -p $CRAFT_PART_INSTALL/app
-      #cp -r * $CRAFT_PART_INSTALL/app
-    stage-packages:
-      - bash # this is for debugging only, should be removed for production
-
-  #webapp:
-    #after: [frontend, backend]
-    #plugin: python
-
-  non-root-user:
     plugin: nil
-    after: [webapp]
-    overlay-script: |
-      # Create a user in the $CRAFT_OVERLAY chroot
-      groupadd -R $CRAFT_OVERLAY -g 1000 ubuntu
-      useradd -R $CRAFT_OVERLAY -M -r -u 1000 -g ubuntu ubuntu
-    override-prime: |
-      craftctl default
+    <<: *kubeflow-source
+    build-environment:
+      - NG_CLI_ANALYTICS: "ci"
+    override-build: |
+      cd components/crud-web-apps/common/frontend/kubeflow-common-lib
+      npm ci
+      npm run build
+
+  frontend2:
+    after: [frontend1]
+    plugin: nil
+    <<: *kubeflow-source
+
+  webapp:
+    after: [backend, frontend2]
+    plugin: nil
+    <<: *kubeflow-source
+
+
+
+# --------------------
+
+#parts:
+#  backend:
+#    plugin: python
+#    source: https://github.com/kubeflow/kubeflow
+#    source-type: git
+#    source-tag: v1.7-branch # upstream branch
+#    source-depth: 1
+#    python-packages:
+#      - ./components/crud-web-apps/common/backend
+#    build-packages:
+#      - python3-venv
+#    #override-build: |
+#      #TODO: use PYTHON_SHELL_INTERPRETER
+#      #TODO use path in python-packages
+#      #craftctl default
+#      #pip install ./components/crud-web-apps/common/backend
+#      #cd components/crud-web-apps/common/backend
+#      #python3 setup.py bdist_wheel
+#
+#
+#  frontend-lib:
+#    source: https://github.com/kubeflow/kubeflow
+#    source-type: git
+#    source-tag: v1.7-branch # upstream branch
+#    source-depth: 1
+#    plugin: npm
+#    npm-include-node: true
+#    npm-node-version: "12.22.9"
+#    override-build: |
+#      #craftctl default
+#      cd components/crud-web-apps/common/frontend/kubeflow-common-lib
+#      craftctl default
+#      #NG_CLI_ANALYTICS="ci" npm ci
+#      #npm run build
+#      #cp -r dist/kubeflow "${CRAFT_PART_INSTALL}/kubeflow"
+#    stage-packages:
+#      - bash # this is for debugging only, should be removed for production
+#
+#  frontend:
+#    after: [frontend-lib]
+#    source: https://github.com/kubeflow/kubeflow
+#    source-type: git
+#    source-tag: v1.7-branch # upstream branch
+#    source-depth: 1
+#    plugin: npm
+#    npm-include-node: true
+#    npm-node-version: "12.22.9"
+#    override-build: |
+#      cd components/crud-web-apps/volumes/frontend
+#      craftctl default
+#      #NG_CLI_ANALYTICS="ci" npm ci
+#      #cp -r "${CRAFT_PART_STAGE}/kubeflow" ./node_modules/kubeflow
+#      #npm run build -- --output-path="${CRAFT_PART_INSTALL}/default" --configuration=production
+#
+#      #set -xe
+#      #cd $CRAFT_PART_SRC/components/centraldashboard/
+#
+#      # set environment variables
+#      #export BUILD_VERSION=$(git describe --abbrev=0 --tags)
+#      #export BUILD_COMMIT=$(git rev-parse HEAD)
+#
+#      # build
+#      #npm rebuild
+#      #npm install
+#      #npm test
+#      #npm run build
+#      #npm prune --production
+#
+#      # install build artifacts
+#      #mkdir -p $CRAFT_PART_INSTALL/app
+#      #cp -r * $CRAFT_PART_INSTALL/app
+#    stage-packages:
+#      - bash # this is for debugging only, should be removed for production
+#
+#  #webapp:
+#    #after: [frontend, backend]
+#    #plugin: python
+#
+#  non-root-user:
+#    plugin: nil
+#    after: [webapp]
+#    overlay-script: |
+#      # Create a user in the $CRAFT_OVERLAY chroot
+#      groupadd -R $CRAFT_OVERLAY -g 1000 ubuntu
+#      useradd -R $CRAFT_OVERLAY -M -r -u 1000 -g ubuntu ubuntu
+#    override-prime: |
+#      craftctl default
