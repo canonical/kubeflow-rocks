@@ -20,42 +20,66 @@ services:
 platforms:
   amd64:
 
-definitions:
-  kubeflow-source: &kubeflow-source
+parts:
+  backend:
+    plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
     source-tag: v1.7-branch  # upstream branch
     source-depth: 1
-
-parts:
-  backend:
-    plugin: nil
-    <<: *kubeflow-source
     build-packages:
       - python3-venv
     override-build: |
+      pip3 install setuptools
       cd components/crud-web-apps/common/backend
       python3 setup.py bdist_wheel
+      cp -r src $CRAFT_PART_STAGE  # TODO why copy src if we build a wheel?
 
   frontend-lib:
     plugin: nil
-    <<: *kubeflow-source
+    source: https://github.com/kubeflow/kubeflow
+    source-type: git
+    source-tag: v1.7-branch  # upstream branch
+    source-depth: 1
+    build-snaps:
+      - node/12/stable
     build-environment:
       - NG_CLI_ANALYTICS: "ci"
     override-build: |
       cd components/crud-web-apps/common/frontend/kubeflow-common-lib
       npm ci
       npm run build
+      cp -r src/dist/kubeflow/ $CRAFT_PART_STAGE  # TODO confirm
 
-  frontend2:
-    after: [frontend1]
+  frontend:
+    after: [frontend-lib]
     plugin: nil
-    <<: *kubeflow-source
+    source: https://github.com/kubeflow/kubeflow
+    source-type: git
+    source-tag: v1.7-branch  # upstream branch
+    source-depth: 1
+    build-snaps:
+      - node/12/stable
+    build-environment:
+      - NG_CLI_ANALYTICS: "ci"
+    override-build: |
+      cd components/crud-web-apps/volumes/frontend
+      npm ci
+      cp $CRAFT_PART_STAGE/kubeflow/ ./node_modules/kubeflow/  # TODO confirm
+      npm run build -- --output-path=./dist/default --configuration=production
 
   webapp:
-    after: [backend, frontend2]
+    after: [backend, frontend]
     plugin: nil
-    <<: *kubeflow-source
+    source: https://github.com/kubeflow/kubeflow
+    source-type: git
+    source-tag: v1.7-branch  # upstream branch
+    source-depth: 1
+    build-packages:
+      - python3-venv
+    override-build: |
+      pip3 install $CRAFT_PART_STAGE/src  # FIXME
+      pip3 install -r components/crud-web-apps/volumes/backend/requirements.txt
 
 
 
