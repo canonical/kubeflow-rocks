@@ -30,6 +30,7 @@ parts:
     build-packages:
       - python3-venv
       - python3-setuptools
+      - python3-pip
     override-build: |
       python3 -m pip install wheel
       cd components/crud-web-apps/common/backend
@@ -52,7 +53,9 @@ parts:
       cd components/crud-web-apps/common/frontend/kubeflow-common-lib
       npm ci
       npm run build
-      cp -r src/dist/kubeflow/ $CRAFT_PART_STAGE  # TODO confirm
+      cp -r dist/kubeflow/ $CRAFT_STAGE
+    override-stage: |
+      cp -r kubeflow $CRAFT_PRIME
 
   frontend:
     after: [frontend-lib]
