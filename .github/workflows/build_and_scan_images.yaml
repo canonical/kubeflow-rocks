@@ -21,20 +21,41 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Kubeflow CI
+        run: |
+          CI_REPO="https://github.com/canonical/kubeflow-ci.git"
+          mkdir -p kubeflow-ci
+          cd kubeflow-ci
+          git init -q
+          git remote add -f origin "$CI_REPO" &> /dev/null
+          git sparse-checkout set scripts/
+          git pull -q origin main
+          cd -
       - name: Install tools
         run: |
-          ./tools/install-tools.sh
+          ./kubeflow-ci/scripts/rock-build-scan/install_tools.sh
       - name: Build ROCK
+        id: rockcraft
         uses: canonical/craft-actions/rockcraft-pack@main
         with:
           path: ${{ matrix.rock }}
-      - name: Scan for vulnerabilities
+      - name: Copy ROCK to Docker
         run: |
-          ../tools/scan.sh
+          skopeo --insecure-policy copy oci-archive:${{ steps.rockcraft.outputs.rock }} \
+            docker-daemon:${{ steps.rockcraft.outputs.rock }}
+        working-directory: ${{ matrix.rock }}
+      - name: Run Trivy vulnerability scanner
+        id: trivy-scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ steps.rockcraft.outputs.rock }}'
+          format: 'json'
+          output: 'trivy-report-${{ matrix.rock }}.json'
         working-directory: ${{ matrix.rock }}
       - name: Send vulnerability records
         run: |
-          ../tools/send-scan.sh ./trivy-reports ${{ secrets.JIRA_URL }}
+          ./kubeflow-ci/scripts/cve-reports/send-scan.py --report-path=${{ steps.trivy-scan.output }} \
+            --jira-url=${{ secrets.JIRA_URL }}
         working-directory: ${{ matrix.rock }}
       - name: Prepare artifacts
         run: |
