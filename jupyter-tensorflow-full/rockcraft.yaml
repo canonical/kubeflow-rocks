@@ -1,0 +1,65 @@
+name: jupyter-tensorflow-full
+base: ubuntu:20.04
+version: '0.1.0'
+summary: jupyter-tensorflow-full OCI image
+
+license: Apache-2.0
+platforms:
+    amd64:
+
+parts:
+    base-image:
+        plugin: nil
+        build-environment:
+            - NB_USER: "jovyan"
+            - NB_UID: "1000"
+            - NB_PREFIX: "/"
+            - HOME: "/home/jovyan"
+            - SHELL: "/bin/bash"
+            - KUBECTL_ARCH: "amd64"
+            - KUBECTL_VERSION: "v1.21.0"
+            - S6_ARCH: "amd64"
+            - S6_VERSION: "v2.2.0.3"
+
+        overlay-packages:
+            - apt-transport-https
+            - bash
+            - bzip2
+            - ca-certificates
+            - curl
+            - git
+            - gnupg
+            - gnupg2
+            - locales
+            - lsb-release
+            - nano
+            - software-properties-common
+            - tzdata
+            - unzip
+            - vim
+            - wget
+            - zip
+        override-build:
+            export GNUPGHOME=/tmp/ \
+            && curl -sL "https://github.com/just-containers/s6-overlay/releases/download/${S6_VERSION}/s6-overlay-${S6_ARCH}-installer" -o /tmp/s6-overlay-${S6_VERSION}-installer \
+            && curl -sL "https://github.com/just-containers/s6-overlay/releases/download/${S6_VERSION}/s6-overlay-${S6_ARCH}-installer.sig" -o /tmp/s6-overlay-${S6_VERSION}-installer.sig \
+            && gpg --keyserver keys.gnupg.net --keyserver pgp.surfnet.nl --recv-keys 6101B2783B2FD161 \
+            && gpg -q --verify /tmp/s6-overlay-${S6_VERSION}-installer.sig /tmp/s6-overlay-${S6_VERSION}-installer \
+            && chmod +x /tmp/s6-overlay-${S6_VERSION}-installer \
+            && /tmp/s6-overlay-${S6_VERSION}-installer / \
+            && rm /tmp/s6-overlay-${S6_VERSION}-installer.sig /tmp/s6-overlay-${S6_VERSION}-installer
+
+            curl -sL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${KUBECTL_ARCH}/kubectl" -o /usr/local/bin/kubectl \
+            && curl -sL "https://dl.k8s.io/${KUBECTL_VERSION}/bin/linux/${KUBECTL_ARCH}/kubectl.sha256" -o /tmp/kubectl.sha256 \
+            && echo "$(cat /tmp/kubectl.sha256) /usr/local/bin/kubectl" | sha256sum --check \
+            && rm /tmp/kubectl.sha256 \
+            && chmod +x /usr/local/bin/kubectl
+
+            useradd -M -s /bin/bash -N -u ${NB_UID} ${NB_USER} \
+            && mkdir -p ${HOME} \
+            && chown -R ${NB_USER}:users ${HOME} \
+            && chown -R ${NB_USER}:users /usr/local/bin \
+            && chown -R ${NB_USER}:users /etc/s6
+
+
+
