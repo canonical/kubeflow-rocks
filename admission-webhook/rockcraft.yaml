@@ -35,3 +35,13 @@ parts:
       cp webhook $CRAFT_PART_INSTALL/webhook
     organize:
       webhook: "bin/webhook"
+
+  non-root-user:
+    plugin: nil
+    after: [admission-webhook]
+    overlay-script: |
+      # Create a user in the $CRAFT_OVERLAY chroot
+      groupadd -R $CRAFT_OVERLAY -g 1000 admission-webhook
+      useradd -R $CRAFT_OVERLAY -M -r -u 1000 -g admission-webhook admission-webhook
+    override-prime: |
+      craftctl default
