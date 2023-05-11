@@ -21,7 +21,7 @@ parts:
     plugin: go
     source: https://github.com/kubeflow/pipelines
     build-snaps:
-      - go/1.17.6
+      - go/1.17/stable
     source-type: git
     source-tag: 2.0.0-alpha.7 # upstream tag
     build-packages:
