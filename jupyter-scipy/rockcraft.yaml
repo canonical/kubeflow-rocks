@@ -1,12 +1,15 @@
 name: jupyter-scipy
 summary: An image for using Jupyter SciPy
-description: An image for using Jupyter SciPy
-version: v1.7.0_1 # version format: <KF-upstream-version>_<Charmed-KF-version>
+description: |
+  This image is used as part of the Charmed Kubeflow product. It is deployed
+  in a user namespace, and enables users to perform CPU-accelerated tasks
+  using SciPy from within a Jupyter Notebook.
+
+  Both SciPy and Jupyter are installed in Conda environment, which is
+  automatically activated.
+version: v1.7.0_22.04_1 # version format: <KF-upstream-version>_<base-version>_<Charmed-KF-version>
 license: Apache-2.0
 base: ubuntu:22.04
-platforms:
-  amd64:
-
 services:
   jupyter:
     override: replace
@@ -15,7 +18,7 @@ services:
     user: jovyan
     env:
     - NB_USER: jovyan
-    - NB_UID: 1000
+    - NB_UID: 1001
     - NB_PREFIX: /
     - HOME: /home/jovyan
     - SHELL: /bin/bash
@@ -24,8 +27,56 @@ services:
     - LC_ALL: en_US.UTF-8
     - PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     command: /opt/conda/bin/jupyter lab --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url="/" --ServerApp.authenticate_prometheus=False
+platforms:
+  amd64:
 
 parts:
+  overlay-pkgs:
+    plugin: nil
+    # These were taken from the upstream base image. They *may not* all be required.
+    overlay-packages:
+      - apt-transport-https
+      - bash
+      - bzip2
+      - ca-certificates
+      - curl
+      - git
+      - gnupg
+      - gnupg2
+      - locales
+      - lsb-release
+      - nano
+      - software-properties-common
+      - tzdata
+      - unzip
+      - vim
+      - wget
+      - zip
+
+  kubectl:
+    plugin: nil
+    stage-snaps:
+      - kubectl/1.24/stable
+    organize:
+      kubectl: bin/kubectl
+    stage:
+      - bin/kubectl
+
+  nodejs:
+    plugin: nil
+    stage-packages: [nodejs]
+
+  generate-locale:
+    plugin: nil
+    build-packages:
+      - locales
+    override-build: |
+      echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
+      locale-gen
+      mkdir -p $CRAFT_PART_INSTALL/usr/lib/locale $CRAFT_PART_INSTALL/usr/share/i18n/locales
+      cp /usr/lib/locale/locale-archive $CRAFT_PART_INSTALL/usr/lib/locale/locale-archive
+      cp -r /usr/share/i18n/locales $CRAFT_PART_INSTALL/usr/share/i18n/locales
+
   conda-jupyter:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
@@ -104,14 +155,21 @@ parts:
       cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt/conda"
       cp -r "${HOME}" "${CRAFT_PART_INSTALL}/${HOME}"
 
+      # security requirement
+      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
+      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && \
+       dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
+       > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
+
+  # not-root user for this ROCK should be 'jovyan'
   non-root-user:
     plugin: nil
     after: [conda-jupyter]
     overlay-script: |
       # Create a user in the $CRAFT_OVERLAY chroot
-      useradd -R $CRAFT_OVERLAY -M -s /bin/bash -N -u 1000 jovyan
+      useradd -R $CRAFT_OVERLAY -M -s /bin/bash -N -u 1001 jovyan
     override-prime: |
       craftctl default
-      chown -R 1000:users home/jovyan
-      chown -R 1000:users bin
-      chown -R 1000:users opt/conda
+      chown -R 1001:users home/jovyan
+      chown -R 1001:users bin
+      chown -R 1001:users opt/conda
