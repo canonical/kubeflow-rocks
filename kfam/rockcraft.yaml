@@ -8,26 +8,34 @@ description: Kubeflow Access Management API provides fine-grain user-namespace l
 version: "v1.7.0"
 license: Apache-2.0
 base: ubuntu:22.04
+
 platforms:
   amd64:
+
 services:
   access-manager:
     override: replace
-    command: "/manager -userid-header kubeflow-userid -userid-prefix ''"
+    command: "/access-management -cluster-admin admin -userid-header kubeflow-userid -userid-prefix ''"
     startup: enabled
     user: kfam
+
 parts:
   kfam:
-    plugin: dump
-    build-snaps: [go]
-    source: https://github.com/kubeflow/kubeflow
+    plugin: go
+    build-snaps:
+      - go/1.19/stable
+    source: https://github.com/kubeflow/kubeflow.git
     source-subdir: components/access-management
-    source-tag: "v1.7.0"
+    source-type: git
+    source-tag: v1.7.0
     build-environment:
       - CGO_ENABLED: 0
       - GOOS: linux
     override-build: |
-        go build -gcflags 'all=-N -l' -o access-management main.go
-        cp access-management $CRAFT_PART_INSTALL/access-management
-        cp third_party $CRAFT_PART_INSTALL/third_party
-        cp /go/pkg/mod/github.com/hashicorp $CRAFT_PART_INSTALL/third_party/library/
+      # cd into $CRAFT_PART_SRC_WORK due to https://github.com/canonical/craft-parts/issues/427
+      cd $CRAFT_PART_SRC_WORK
+      go mod download
+      go build -gcflags 'all=-N -l' -o $CRAFT_PART_INSTALL/access-management main.go
+      chmod a+rx $CRAFT_PART_INSTALL/access-management
+      cp -r third_party $CRAFT_PART_INSTALL/third_party
+      cp -r /root/go/pkg/mod/github.com/hashicorp $CRAFT_PART_INSTALL/third_party/library/
