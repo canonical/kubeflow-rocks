@@ -18,6 +18,7 @@ services:
     override: merge
     command: webhook
     startup: enabled
+    user: ubuntu
 
 parts:
   admission-webhook:
@@ -41,7 +42,7 @@ parts:
     after: [admission-webhook]
     overlay-script: |
       # Create a user in the $CRAFT_OVERLAY chroot
-      groupadd -R $CRAFT_OVERLAY -g 1000 admission-webhook
-      useradd -R $CRAFT_OVERLAY -M -r -u 1000 -g admission-webhook admission-webhook
+      groupadd -R $CRAFT_OVERLAY -g 1000 ubuntu
+      useradd -R $CRAFT_OVERLAY -M -r -u 1000 -g ubuntu ubuntu
     override-prime: |
       craftctl default
