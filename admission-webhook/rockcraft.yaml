@@ -21,6 +21,12 @@ services:
     user: ubuntu
 
 parts:
+  security-team-requirement:
+    plugin: nil
+    override-build: |
+      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
+      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
+
   admission-webhook:
     plugin: go
     build-snaps:
@@ -42,7 +48,7 @@ parts:
     after: [admission-webhook]
     overlay-script: |
       # Create a user in the $CRAFT_OVERLAY chroot
-      groupadd -R $CRAFT_OVERLAY -g 1000 ubuntu
-      useradd -R $CRAFT_OVERLAY -M -r -u 1000 -g ubuntu ubuntu
+      groupadd -R $CRAFT_OVERLAY -g 1001 ubuntu
+      useradd -R $CRAFT_OVERLAY -M -r -u 1001 -g ubuntu ubuntu
     override-prime: |
       craftctl default
