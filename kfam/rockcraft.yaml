@@ -17,7 +17,7 @@ services:
     override: replace
     command: "/access-management -cluster-admin admin -userid-header kubeflow-userid -userid-prefix ''"
     startup: enabled
-    user: kfam
+    user: ubuntu
 
 parts:
   kfam:
@@ -39,3 +39,18 @@ parts:
       chmod a+rx $CRAFT_PART_INSTALL/access-management
       cp -r third_party $CRAFT_PART_INSTALL/third_party
       cp -r /root/go/pkg/mod/github.com/hashicorp $CRAFT_PART_INSTALL/third_party/library/
+
+      # security requirement
+      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/ROCK images
+      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && \
+      dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
+      > ${CRAFT_PART_INSTALL}/usr/share/ROCK images/dpkg.query
+
+  non-root-user:
+    plugin: nil
+    after: kfam
+    overlay-script: |
+      # Create a user in the $CRAFT_OVERLAY chroot
+      groupadd -R $CRAFT_OVERLAY -g 1001 ubuntu
+      useradd -R $CRAFT_OVERLAY -M -r -u 1001 -g ubuntu ubuntu
+ 
