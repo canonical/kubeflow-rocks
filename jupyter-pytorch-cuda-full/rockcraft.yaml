@@ -7,7 +7,7 @@ description: |
 
   Both PyTorch and Jupyter are installed in Conda environment, which is
   automatically activated.
-version: v1.7.0_1 # version format: <KF-upstream-version>_<Charmed-KF-version>
+version: v1.7.0_22.04_1 # version format: <KF-upstream-version>_<base-version>_<Charmed-KF-version>
 license: Apache-2.0
 base: ubuntu:22.04
 services:
@@ -16,20 +16,19 @@ services:
     summary: "jupyter-pytorch-cuda-full service"
     startup: enabled
     user: jovyan
-    env:
-    - NB_USER: jovyan
-    - NB_UID: 1001
-    - NB_PREFIX: /
-    - HOME: /home/jovyan
-    - SHELL: /bin/bash
-    - LANG: en_US.UTF-8
-    - LANGUAGE: en_US.UTF-8
-    - LC_ALL: en_US.UTF-8
-    - PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-    - NVIDIA_VISIBLE_DEVICES: all
-    - NVIDIA_DRIVER_CAPABILITIES: compute,utility
-    - LD_LIBRARY_PATH: /usr/local/nvidia/lib:/usr/local/nvidia/lib64
-
+    environment:
+      NB_USER: jovyan
+      NB_UID: 1001
+      NB_PREFIX: /
+      HOME: /home/jovyan
+      SHELL: /bin/bash
+      LANG: en_US.UTF-8
+      LANGUAGE: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+      PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      LD_LIBRARY_PATH: /usr/local/nvidia/lib:/usr/local/nvidia/lib64
     command: /opt/conda/bin/jupyter lab --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --allow-root --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url="/" --ServerApp.authenticate_prometheus=False
 platforms:
   amd64:
