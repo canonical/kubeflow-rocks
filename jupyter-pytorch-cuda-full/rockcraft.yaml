@@ -33,7 +33,23 @@ services:
 platforms:
   amd64:
 
+package-repositories:
+  - type: apt
+    components: [main]
+    suites: [jammy]
+    key-id: 9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280
+    url: https://deb.nodesource.com/node_14.x
+
 parts:
+  security-team-requirement:
+    plugin: nil
+    override-build: |
+      # security requirement
+      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
+      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && \
+       dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
+       > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
+
   overlay-pkgs:
     plugin: nil
     # These were taken from the upstream base image. They *may not* all be required.
@@ -59,18 +75,15 @@ parts:
   kubectl:
     plugin: nil
     stage-snaps:
-      - kubectl/1.21/stable
+      - kubectl/1.24/stable
     organize:
       kubectl: bin/kubectl
     stage:
       - bin/kubectl
 
   nodejs:
-    plugin: dump
-    # This is a bit of a hack to install a deb from an external apt repository.
-    # Once the apt repository support lands in Rockcraft this should be replaced.
-    source: https://deb.nodesource.com/node_14.x/pool/main/n/nodejs/nodejs_14.21.3-deb-1nodesource1_amd64.deb
-    source-type: deb
+    plugin: nil
+    stage-packages: [nodejs]
 
   generate-locale:
     plugin: nil
@@ -164,12 +177,6 @@ parts:
       # Stage the conda directories
       cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt/conda"
       cp -r "${HOME}" "${CRAFT_PART_INSTALL}/${HOME}"
-
-      # security requirement
-      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
-      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && \
-       dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
-       > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
 
   # not-root user for this ROCK should be 'jovyan'
   non-root-user:
