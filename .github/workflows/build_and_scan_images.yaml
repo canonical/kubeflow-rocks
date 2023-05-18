@@ -5,6 +5,9 @@ on:
   #schedule:
   # every day at 1:12AM UTC
   #- cron: '12 1 * * *'
+    secrets:
+      JIRA_URL:
+        required: true
 
 jobs:
   build-scan-rocks:
@@ -13,9 +16,15 @@ jobs:
     strategy:
       matrix:
         rock:
+          - admission-webhook
           - centraldashboard
+          - jupyter-pytorch-cuda-full
           - jupyter-pytorch-full
+          - jupyter-scipy
+          - jupyter-web-app
+          - kfam
           - notebook-controller
+          - volumes-web-app
     steps:
       - name: Checkout
         uses: actions/checkout@v3
