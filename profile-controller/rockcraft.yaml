@@ -59,3 +59,7 @@ parts:
       # Create a user in the $CRAFT_OVERLAY chroot
       groupadd -R $CRAFT_OVERLAY -g 1001 ubuntu
       useradd -R $CRAFT_OVERLAY -M -r -u 1001 -g ubuntu ubuntu
+
+  # TODO: Need to add the security-team-requirement part like 
+  #       [here](https://github.com/canonical/kubeflow-rocks/blob/main/admission-webhook/rockcraft.yaml#L24)
+  #       but this part needs to be refactored first to work with rockcraft
