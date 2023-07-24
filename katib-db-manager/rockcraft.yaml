@@ -1,0 +1,69 @@
+name: katib-db-manager
+summary: An image for the Katib DB manager
+description: |
+  This image is used as part of the Charmed Kubeflow product. Katib DB Manager
+  creates DB connection to the DB by the type of DB.
+version: v0.15.0_22.04_1 # version format: <Katib-upstream-version>_<base-version>_<Charmed-KF-version>
+license: Apache-2.0
+base: ubuntu:22.04
+services:
+  katib-db-manager:
+    override: replace
+    summary: "katib-db-manager service"
+    startup: enabled
+    user: ubuntu
+    command: "/app/katib-db-manager"
+platforms:
+  amd64:
+
+parts:
+  katib-db-manager:
+    plugin: go
+    source: https://github.com/kubeflow/katib
+    source-type: git
+    source-tag: v0.15.0
+    build-snaps:
+      - go
+    build-packages:
+      - apt
+      - bash
+      - wget
+    build-environment:
+      - CGO_ENABLED: 0
+      - GOOS: linux
+      - GRPC_HEALTH_PROBE_VERSION: v0.4.15
+      - TARGETARCH: amd64
+    stage-packages:
+      - bash
+    override-build: |
+      set -xe
+      cd $CRAFT_PART_SRC/
+
+      # build
+      go mod tidy
+      go mod download -x
+      go build -a -o katib-db-manager ./cmd/db-manager/v1beta1
+
+      # download GRPC health probe
+      wget -qO grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-${TARGETARCH}
+      chmod +x grpc_health_probe
+
+      # install build artifacts
+      mkdir -p $CRAFT_PART_INSTALL/app
+      mkdir -p $CRAFT_PART_INSTALL/bin
+      cp katib-db-manager $CRAFT_PART_INSTALL/app/
+      cp grpc_health_probe $CRAFT_PART_INSTALL/bin/
+
+      # security requirement
+      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
+      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && \
+       dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
+       > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
+
+  non-root-user:
+    plugin: nil
+    after: [katib-db-manager]
+    overlay-script: |
+      # Create a user in the $CRAFT_OVERLAY chroot
+      groupadd -R $CRAFT_OVERLAY -g 1001 ubuntu
+      useradd -R $CRAFT_OVERLAY -M -r -u 1001 -g ubuntu ubuntu
