@@ -1,0 +1,88 @@
+name: jupyter-web-app
+summary: An image for Jupyter UI
+description: |
+  This image is used as part of Charmed Kubeflow product. Jupyter UI web application provides
+  users with web UI to access and manipulate Jupyter Notebooks in Charmed Kubeflow.
+version: v1.7.0_22.04_1 # version format: <KF-upstream-version>_<base-version>_<Charmed-KF-version>
+license: Apache-2.0
+base: ubuntu:22.04
+services:
+  jupyter:
+    override: replace
+    summary: "jupyter-ui service"
+    startup: enabled
+    user: ubuntu
+    command: "/bin/bash -c gunicorn -w 3 --bind 0.0.0.0:5000 --access-logfile - entrypoint:app"
+platforms:
+  amd64:
+
+parts:
+  jupyter-ui:
+    plugin: nil
+    source: https://github.com/kubeflow/kubeflow
+    source-type: git
+    source-tag: v1.7-branch # upstream branch
+    build-packages:
+      - bash
+    build-environment:
+      - KF_REPO: "/root/parts/kubeflow-repo"
+      - NG_CLI_ANALYTICS: "ci"
+    override-build: |
+      set -xe
+
+      # install dependencies
+      curl --output get-pip.py https://bootstrap.pypa.io/get-pip.py && \
+      python3 get-pip.py
+
+      # build backend kubeflow wheel
+      cd $CRAFT_PART_BUILD
+      cp $KF_REPO/src/components/crud-web-apps/common/backend/* ./ -r
+      python3 setup.py bdist_wheel
+
+      # build backend kubeflow library
+      cp $KF_REPO/src/components/crud-web-apps/common/frontend/kubeflow-common-lib/package.json ./
+      cp $KF_REPO/src/components/crud-web-apps/common/frontend/kubeflow-common-lib/package-lock.json ./
+      npm ci
+
+      cp $KF_REPO/src/components/crud-web-apps/common/frontend/kubeflow-common-lib/projects ./ -r
+      cp $KF_REPO/src/components/crud-web-apps/common/frontend/kubeflow-common-lib/angular.json .
+      cp $KF_REPO/src/components/crud-web-apps/common/frontend/kubeflow-common-lib/tsconfig.json .
+      npm run build
+
+      # build frontend
+      cp $KF_REPO/src/components/crud-web-apps/jupyter/frontend/package.json ./
+      cp $KF_REPO/src/components/crud-web-apps/jupyter/frontend/package-lock.json ./
+      cp $KF_REPO/src/components/crud-web-apps/jupyter/frontend/tsconfig.json ./
+      cp $KF_REPO/src/components/crud-web-apps/jupyter/frontend/tsconfig.app.json ./
+      cp $KF_REPO/src/components/crud-web-apps/jupyter/frontend/tsconfig.spec.json ./
+      cp $KF_REPO/src/components/crud-web-apps/jupyter/frontend/angular.json ./
+      cp $KF_REPO/src/components/crud-web-apps/jupyter/frontend/src ./ -r
+      npm ci
+
+      # install jupyter ui web app
+      cp -r ./dist/kubeflow/ ./node_modules/kubeflow
+      npm run build -- --output-path=./dist/default --configuration=production
+      pip3 install .
+
+      cp $KF_REPO/src/components/crud-web-apps/jupyter/backend/requirements.txt .
+      pip3 install -r requirements.txt
+
+      cp $KF_REPO/src/components/crud-web-apps/jupyter/backend/apps/ ./ -r
+      cp $KF_REPO/src/components/crud-web-apps/jupyter/backend/entrypoint.py .
+
+      # security requirement
+      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
+      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && \
+       dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
+       > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
+
+    organize:
+      ./dist/default: /src/apps/default/static
+
+  non-root-user:
+    plugin: nil
+    after: [jupyter-ui]
+    overlay-script: |
+      # Create a user in the $CRAFT_OVERLAY chroot
+      groupadd -R $CRAFT_OVERLAY -g 1001 ubuntu
+      useradd -R $CRAFT_OVERLAY -M -r -u 1001 -g ubuntu ubuntu
