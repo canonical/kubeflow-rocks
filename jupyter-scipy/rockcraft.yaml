@@ -10,12 +10,12 @@ description: |
 version: v1.7.0_22.04_1 # version format: <KF-upstream-version>_<base-version>_<Charmed-KF-version>
 license: Apache-2.0
 base: ubuntu:22.04
+run-user: _daemon_
 services:
   jupyter:
     override: replace
     summary: "jupyter-scipy service"
     startup: enabled
-    user: jovyan
     environment:
      NB_USER: jovyan
      NB_UID: 1001
