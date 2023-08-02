@@ -1,3 +1,7 @@
+# Based on the following Dockerfiles:
+# https://github.com/kubeflow/kubeflow/blob/v1.7-branch/components/example-notebook-servers/base/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.7-branch/components/example-notebook-servers/jupyter/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.7-branch/components/example-notebook-servers/jupyter-tensorflow-full/cpu.Dockerfile
 name: jupyter-tensorflow-full
 summary: An image for using Jupyter & Tensorflow on CPUs
 description: |
@@ -7,9 +11,9 @@ description: |
 
   Both Tensorflow and Jupyter are installed in Conda environment, which is
   automatically activated.
-version: v1.7.0_22.04_1
+version: v1.7.0_20.04_1
 license: Apache-2.0
-base: ubuntu:22.04
+base: ubuntu:20.04
 run-user: _daemon_
 services:
   jupyter:
@@ -26,16 +30,11 @@ services:
       LANGUAGE: en_US.UTF-8
       LC_ALL: en_US.UTF-8
       PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-    command: /opt/conda/bin/jupyter lab --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url="/" --ServerApp.authenticate_prometheus=False
+      PYTHONPATH: /opt/conda/lib/python3.8/site-packages/
+    command: ./jupyter lab --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url="/" --ServerApp.authenticate_prometheus=False
+    working-dir: /opt/conda/bin/
 platforms:
   amd64:
-
-package-repositories:
-  - type: apt
-    components: [main]
-    suites: [jammy]
-    key-id: 9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280
-    url: https://deb.nodesource.com/node_14.x
 
 parts:
   security-team-requirement:
@@ -43,7 +42,7 @@ parts:
     override-build: |
       mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
       (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && \
-      dpkg-query --root=${CRAFT_PROJECT_DIR}/../bundles/ubuntu-22.04/rootfs/ -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
+      dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
       > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
 
   overlay-pkgs:
@@ -108,6 +107,8 @@ parts:
       - HOME: "/home/jovyan"
       - CONDA_DIR: "/opt/conda"
       - CONDA_BIN: "/opt/conda/bin"
+    stage-packages:
+      - python3.8-distutils
     override-build: |
       set -xe
       mkdir -p "$CONDA_DIR" "$HOME"
@@ -148,14 +149,14 @@ parts:
       "${CONDA_BIN}/pip" install --no-cache-dir -r jupyter-requirements.txt
 
       # Generate a jupyter lab config
-      "${CONDA_BIN}/jupyter" lab --generate-config --allow-root
+      "${CONDA_BIN}/jupyter" lab --generate-config
 
       # Install the jupyter-tensorflow cpu requirements
-      cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-tensorflow/cpu-requirements.txt cpu-requirements.txt
+      cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter-tensorflow/cpu-requirements.txt cpu-requirements.txt
       "${CONDA_BIN}/pip" install --no-cache-dir -r cpu-requirements.txt
 
       # Install the jupyter-tensorflow-full cpu requirements
-      cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-tensorflow-full/requirements.txt requirements.txt
+      cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter-tensorflow-full/requirements.txt requirements.txt
       "${CONDA_BIN}/pip" install --no-cache-dir -r requirements.txt
 
       # Create some directories for staging files
