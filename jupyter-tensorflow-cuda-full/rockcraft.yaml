@@ -162,6 +162,9 @@ parts:
       # Generate a jupyter lab config
       "${CONDA_BIN}/jupyter" lab --generate-config
 
+      # Create some directories for staging files
+      mkdir -p "${CRAFT_PART_INSTALL}/opt" "${CRAFT_PART_INSTALL}/etc" "${CRAFT_PART_INSTALL}/home"
+
       # create Nvidia/CUDA directories
       mkdir -p "${CRAFT_PART_INSTALL}/usr/local" "${CRAFT_PART_INSTALL}/usr/local/cuda"
 
@@ -203,7 +206,7 @@ parts:
       && ldconfig
 
       # copy CUDA config
-      mkdri -p ${CRAFT_PART_INSTALL}/etc/ld.so.conf.d/
+      mkdir -p ${CRAFT_PART_INSTALL}/etc/ld.so.conf.d/
       cp -r /etc/ld.so.conf.d/z-cuda-stubs.conf ${CRAFT_PART_INSTALL}/etc/ld.so.conf.d/z-cuda-stubs.conf
 
       # tensorflow fix - wrong libcusolver lib path
@@ -220,9 +223,6 @@ parts:
       # Install the jupyter-tensorflow-full requirements
       cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter-tensorflow-full/requirements.txt requirements.txt
       "${CONDA_BIN}/pip" install --no-cache-dir -r requirements.txt
-
-      # Create some directories for staging files
-      mkdir -p "${CRAFT_PART_INSTALL}/opt" "${CRAFT_PART_INSTALL}/etc" "${CRAFT_PART_INSTALL}/home"
 
       # Write some config files for activating conda in user sessions
       echo ". /opt/conda/etc/profile.d/conda.sh" >> "${HOME}/.bashrc"
