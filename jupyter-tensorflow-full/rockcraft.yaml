@@ -110,7 +110,7 @@ parts:
       - python3.8-distutils
     override-build: |
       set -xe
-      mkdir -p "$CONDA_DIR" "$HOME"
+      mkdir -p "${CONDA_DIR}" "${HOME}"
 
       # Download the miniforge installer
       wget -qO miniforge.sh \
@@ -183,7 +183,6 @@ parts:
       useradd -R $CRAFT_OVERLAY -M -s /bin/bash -N -u 1001 jovyan
     override-prime: |
       craftctl default
-      chown -R 1001:users home/jovyan
-      chown -R 1001:users bin
-      chown -R 1001:users opt/conda
-
+      chown -R 584792:users home/jovyan
+      chown -R 584792:users bin
+      chown -R 584792:users opt/conda
