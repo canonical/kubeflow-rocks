@@ -47,7 +47,6 @@ parts:
 
   overlay-pkgs:
     plugin: nil
-    # These were taken from the upstream base image. They *may not* all be required.
     overlay-packages:
       - apt-transport-https
       - bash
