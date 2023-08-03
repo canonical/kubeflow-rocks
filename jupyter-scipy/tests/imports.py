@@ -1,6 +1,11 @@
 #
 # This python script tests loading of required modules
 #
+# jupyter packages
+import jupyterlab
+import notebook
+import ipykernel
+
 # kubeflow packages
 # TO-DO verfiy proper kfp import. Upgrade mught be needed.
 #import kfp
