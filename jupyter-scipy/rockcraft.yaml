@@ -7,9 +7,9 @@ description: |
 
   Both SciPy and Jupyter are installed in Conda environment, which is
   automatically activated.
-version: v1.7.0_22.04_1 # version format: <KF-upstream-version>_<base-version>_<Charmed-KF-version>
+version: v1.7.0_20.04_1 # version format: <KF-upstream-version>_<base-version>_<Charmed-KF-version>
 license: Apache-2.0
-base: ubuntu:22.04
+base: ubuntu:20.04
 run-user: _daemon_
 services:
   jupyter:
@@ -17,25 +17,20 @@ services:
     summary: "jupyter-scipy service"
     startup: enabled
     environment:
-     NB_USER: jovyan
-     NB_UID: 1001
-     NB_PREFIX: /
-     HOME: /home/jovyan
-     SHELL: /bin/bash
-     LANG: en_US.UTF-8
-     LANGUAGE: en_US.UTF-8
-     LC_ALL: en_US.UTF-8
-     PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-    command: /opt/conda/bin/jupyter lab --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url="/" --ServerApp.authenticate_prometheus=False
+      NB_USER: jovyan
+      NB_UID: 1001
+      NB_PREFIX: /
+      HOME: /home/jovyan
+      SHELL: /bin/bash
+      LANG: en_US.UTF-8
+      LANGUAGE: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+      PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PYTHONPATH: /opt/conda/lib/python3.8/site-packages/
+    command: ./jupyter lab --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url="/" --ServerApp.authenticate_prometheus=False
+    working-dir: /opt/conda/bin/
 platforms:
   amd64:
-
-package-repositories:
-  - type: apt
-    components: [main]
-    suites: [jammy]
-    key-id: 9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280
-    url: https://deb.nodesource.com/node_14.x
 
 parts:
   security-team-requirement:
@@ -43,7 +38,7 @@ parts:
     override-build: |
       mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
       (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && \
-      dpkg-query --root=${CRAFT_PROJECT_DIR}/../bundles/ubuntu-22.04/rootfs/ -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
+      dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
       > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
 
   overlay-pkgs:
@@ -108,9 +103,11 @@ parts:
       - HOME: "/home/jovyan"
       - CONDA_DIR: "/opt/conda"
       - CONDA_BIN: "/opt/conda/bin"
+    stage-packages:
+      - python3.8-distutils
     override-build: |
       set -xe
-      mkdir -p "$CONDA_DIR" "$HOME"
+      mkdir -p "${CONDA_DIR}" "${HOME}"
 
       # Download the miniforge installer
       wget -qO miniforge.sh \
@@ -152,7 +149,7 @@ parts:
       "${CONDA_BIN}/pip" install --no-cache-dir -r scipy-requirements.txt
 
       # Generate a jupyter lab config
-      "${CONDA_BIN}/jupyter" lab --generate-config --allow-root
+      "${CONDA_BIN}/jupyter" lab --generate-config
 
       # Create some directories for staging files
       mkdir -p "${CRAFT_PART_INSTALL}/opt" "${CRAFT_PART_INSTALL}/etc" "${CRAFT_PART_INSTALL}/home"
@@ -179,6 +176,6 @@ parts:
       useradd -R $CRAFT_OVERLAY -M -s /bin/bash -N -u 1001 jovyan
     override-prime: |
       craftctl default
-      chown -R 1001:users home/jovyan
-      chown -R 1001:users bin
-      chown -R 1001:users opt/conda
+      chown -R 584792:users home/jovyan
+      chown -R 584792:users bin
+      chown -R 584792:users opt/conda
