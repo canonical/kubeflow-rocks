@@ -5,12 +5,15 @@
 import jupyterlab
 import notebook
 import ipykernel
+
+# pytorch packages
 import torch
 import torchvision
 import torchaudio
 
 # kubeflow packages
-import kfp
+# TO-DO verfiy proper kfp import. Upgrade might be needed.
+#import kfp
 import kfp_server_api
 import kfserving
 
@@ -23,14 +26,17 @@ import ipywidgets
 import jupyterlab_git
 import matplotlib
 import pandas
-import scikit_image
-import scikit_learn
+# TO-DO verify how exactly scikit-image is installed
+# /opt/conda/lib/python3.8/site-packages/scikit_image-0.18.1.dist-info
+#import scikit_image
+# TO-DO verify how exactly scikit-learn is installed
+# /opt/conda/lib/python3.8/site-packages/scikit_learn-0.24.2.dist-info
+#import scikit_learn
 import scipy
 import seaborn
 import xgboost
 
 # pytorch packages
-#torchelastic==0.2.2 this currently causes a dependency conflict, should be fixed very soon
 import fastai
 
 # this string is expected by test script
