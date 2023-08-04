@@ -1,7 +1,7 @@
 #
 # This python script tests loading of required modules
 #
-import tensorflow_gpu as tf
+import tensorflow as tf
 import kfp
 import kfp_server_api
 import kfserving

@@ -166,44 +166,37 @@ parts:
       mkdir -p "${CRAFT_PART_INSTALL}/opt" "${CRAFT_PART_INSTALL}/etc" "${CRAFT_PART_INSTALL}/home"
 
       # create Nvidia/CUDA directories
-      mkdir -p "${CRAFT_PART_INSTALL}/usr/local" "${CRAFT_PART_INSTALL}/usr/local/cuda"
+      mkdir -p "${CRAFT_PART_INSTALL}/usr/local" "${CRAFT_PART_INSTALL}/usr/local/bin"
 
       # Install jupyter-tensorflow CUDA
       # for `cuda-compat-*`: https://docs.nvidia.com/cuda/eula/index.html#attachment-a
-      curl -sL "https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub" | apt-key add - \
-      && echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /" > /etc/apt/sources.list.d/cuda.list \
-      && apt-get -yq update \
-      && apt-get -yq install --no-install-recommends cuda-compat-${CUDA_VERSION/./-}=${CUDA_COMPAT_VERSION} \
-      cuda-cudart-${CUDA_VERSION/./-}=${CUDA_CUDART_VERSION} \
-      && apt-get clean \
-      && rm -rf /var/lib/apt/lists/*
+      curl -sL "https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub" | apt-key add -
+      echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /" > /etc/apt/sources.list.d/cuda.list
+      apt-get -yq update
+      apt-get -yq install --no-install-recommends cuda-compat-${CUDA_VERSION/./-}=${CUDA_COMPAT_VERSION}  cuda-cudart-${CUDA_VERSION/./-}=${CUDA_CUDART_VERSION}
+      apt-get clean
+      rm -rf /var/lib/apt/lists/*
 
-      # copy Nividia/CUDA directories
-      cp -r /usr/local/cuda-${CUDA_VERSION} ${CRAFT_PART_INSTALL}/usr/local/
-      ln -s ${CRAFT_PART_INSTALL}/usr/local/cuda-${CUDA_VERSION} ${CRAFT_PART_INSTALL}/usr/local/cuda
+      # copy jupyter-tensorflow CUDA directories
+      cp -rp /usr/local/cuda-${CUDA_VERSION} ${CRAFT_PART_INSTALL}/usr/local
+      ln -sf /usr/local/cuda-${CUDA_VERSION} ${CRAFT_PART_INSTALL}/usr/local/cuda
 
       # install - other nvidia stuff
-      curl -sL "https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2004/x86_64/7fa2af80.pub" | apt-key add - \
-      && echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2004/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list \
-      && echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list \
-      && apt-get -yq update \
-      && apt-get -yq install --no-install-recommends \
-      cm-super cuda-command-line-tools-${CUDA_VERSION/./-} cuda-nvrtc-${CUDA_VERSION/./-} \
-      libcublas-${CUDA_VERSION/./-} libcudnn8=${CUDNN_VERSION}+cuda${CUDA_VERSION} \
-      libcufft-${CUDA_VERSION/./-} libcurand-${CUDA_VERSION/./-} libcusolver-${CUDA_VERSION/./-} \
-      libcusparse-${CUDA_VERSION/./-} libfreetype6-dev libhdf5-serial-dev \
-      libnvinfer7=${LIBNVINFER_VERSION}+cuda${OLD_CUDA_VERSION} \
-      libnvinfer-plugin7=${LIBNVINFER_VERSION}+cuda${OLD_CUDA_VERSION} \
-      libzmq3-dev pkg-config \
-      # can't be used until NVIDIA updates (requires python < 3.7)
-      # python3-libnvinfer=${LIBNVINFER_VERSION}+cuda${CUDA_VERSION} \
-      && apt-get clean \
-      && rm -rf /var/lib/apt/lists/*
+      curl -sL "https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2004/x86_64/7fa2af80.pub" | apt-key add -
+      echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2004/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list
+      echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list
+      apt-get -yq update
+      apt-get -yq install --no-install-recommends cm-super cuda-command-line-tools-${CUDA_VERSION/./-} cuda-nvrtc-${CUDA_VERSION/./-} libcublas-${CUDA_VERSION/./-} libcudnn8=${CUDNN_VERSION}+cuda${CUDA_VERSION} libcufft-${CUDA_VERSION/./-} libcurand-${CUDA_VERSION/./-} libcusolver-${CUDA_VERSION/./-} libcusparse-${CUDA_VERSION/./-} libfreetype6-dev libhdf5-serial-dev libnvinfer7=${LIBNVINFER_VERSION}+cuda${OLD_CUDA_VERSION} libnvinfer-plugin7=${LIBNVINFER_VERSION}+cuda${OLD_CUDA_VERSION} libzmq3-dev pkg-config
+      apt-get clean
+      rm -rf /var/lib/apt/lists/*
+
+      # copy other nvidia stuff directories
+      cp -rp /usr/local/cuda-${CUDA_VERSION}/* ${CRAFT_PART_INSTALL}/usr/local/cuda-${CUDA_VERSION}
 
       # tensorflow fix - wrong libcuda lib path (+ reconfigure dynamic linker run-time bindings)
-      ln -s ${CRAFT_PART_INSTALL}/usr/local/cuda/lib64/stubs/libcuda.so ${CRAFT_PART_INSTALL}/usr/local/cuda/lib64/stubs/libcuda.so.1 \
-      && echo "/usr/local/cuda/lib64/stubs" > /etc/ld.so.conf.d/z-cuda-stubs.conf \
-      && ldconfig
+      ln -s /usr/local/cuda/lib64/stubs/libcuda.so ${CRAFT_PART_INSTALL}/usr/local/cuda/lib64/stubs/libcuda.so.1
+      echo "/usr/local/cuda/lib64/stubs" > /etc/ld.so.conf.d/z-cuda-stubs.conf
+      ldconfig
 
       # copy CUDA config
       mkdir -p ${CRAFT_PART_INSTALL}/etc/ld.so.conf.d/
@@ -211,10 +204,10 @@ parts:
 
       # tensorflow fix - wrong libcusolver lib path
       # https://github.com/tensorflow/tensorflow/issues/43947#issuecomment-748273679
-      ln -s ${CRAFT_PART_INSTALL}/usr/local/cuda-${CUDA_VERSION}/targets/x86_64-linux/lib/libcusolver.so.11 ${CRAFT_PART_INSTALL}/usr/local/cuda-${CUDA_VERSION}/targets/x86_64-linux/lib/libcusolver.so.10
+      ln -s /usr/local/cuda-${CUDA_VERSION}/targets/x86_64-linux/lib/libcusolver.so.11 ${CRAFT_PART_INSTALL}/usr/local/cuda-${CUDA_VERSION}/targets/x86_64-linux/lib/libcusolver.so.10
 
       # tensorflow fix - some tensorflow tools expect a `python` binary
-      ln -s $(which python3) ${CRAFT_PART_INSTALL}/usr/local/bin/python
+      ln -s /usr/local/bin/python3 ${CRAFT_PART_INSTALL}/usr/local/bin/python
 
       # Install the jupyter-tensorflow CUDA requirements
       cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter-tensorflow/cuda-requirements.txt cuda-requirements.txt
@@ -234,8 +227,8 @@ parts:
       rm -rf "${HOME}/.wget-hsts" "${HOME}/.cache"
 
       # Stage the conda directories
-      cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt/conda"
-      cp -r "${HOME}" "${CRAFT_PART_INSTALL}/${HOME}"
+      cp -rp "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt/conda"
+      cp -rp "${HOME}" "${CRAFT_PART_INSTALL}/${HOME}"
 
   # not-root user for this ROCK should be 'jovyan'
   non-root-user:
