@@ -7,7 +7,7 @@ version: v1.7.0_22.04_1 # version format: <KF-upstream-version>_<base-version>_<
 license: Apache-2.0
 base: ubuntu:22.04
 services:
-  jupyter:
+  jupyter-controller:
     override: replace
     summary: "notebook-controller service"
     startup: enabled
