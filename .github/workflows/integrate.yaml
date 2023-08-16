@@ -51,7 +51,6 @@ jobs:
 
       - name: Unit tests
         run: |
-          sudo apt install tox
           tox -e unit
         working-directory: ./${{ matrix.rock }}
 
