@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    name: Build rocks
+    runs-on: ubuntu-22.04
+    outputs:
+      rockcraft-out: ${{ steps.rockcraft.outputs.rock }}
+    strategy:
+      matrix:
+        rock:
+          - admission-webhook
+          - centraldashboard
+          - jupyter-pytorch-cuda-full
+          - jupyter-pytorch-full
+          - jupyter-tensorflow-cuda-full
+          - jupyter-tensorflow-full
+          - jupyter-scipy
+          - jupyter-web-app
+          - kfam
+          - notebook-controller
+          - volumes-web-app
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+
+      - name: Setup ROCKs environment
+        uses: canonical/craft-actions/rockcraft-pack@main
+        id: rockcraft
+        with:
+          path: ./${{ matrix.rock }}
+
+      - name: Upload rock as artefact
+        uses: actions/upload-artifact@v3
+        with:
+            name: kubeflow-rocks
+            path: ${{ steps.rockcraft.outputs.rock }}
+
+      - name: Unit tests
+        run: tox -e unit
+        working-directory: ./${{ matrix.rock }}
+
+      - name: Integration tests
+        run: |
+          juju add-model kubeflow
+          tox -e integration -- --model kubeflow
+        working-directory: ./${{ matrix.rock }}
+
