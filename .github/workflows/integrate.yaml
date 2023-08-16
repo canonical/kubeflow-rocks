@@ -19,7 +19,6 @@ jobs:
           - jupyter-tensorflow-cuda-full
           - jupyter-tensorflow-full
           - jupyter-scipy
-          - jupyter-web-app
           - kfam
           - notebook-controller
           - volumes-web-app
