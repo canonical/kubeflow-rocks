@@ -49,11 +49,6 @@ jobs:
             name: kubeflow-rocks
             path: ${{ steps.rockcraft.outputs.rock }}
 
-      - name: Unit tests
-        run: |
-          tox -e unit
-        working-directory: ./${{ matrix.rock }}
-
       - name: Setup operator environment
         uses: charmed-kubernetes/actions-operator@main
         with:
@@ -62,6 +57,11 @@ jobs:
             charmcraft-channel: latest/candidate
             microk8s-addons: "dns storage rbac ingress metallb:10.64.140.43-10.64.140.49"
             juju-channel: 2.9/stable
+
+      - name: Unit tests
+        run: |
+          tox -e unit
+        working-directory: ./${{ matrix.rock }}
 
       - name: Integration tests
         run: |
