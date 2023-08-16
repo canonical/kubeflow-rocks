@@ -23,10 +23,25 @@ jobs:
           - notebook-controller
           - volumes-web-app
     steps:
-      - name: Checkout branch
+
+      - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Setup ROCKs environment
+      - name: Setup operator environment
+        uses: charmed-kubernetes/actions-operator@main
+        with:
+            provider: microk8s
+            channel: 1.24/stable
+            charmcraft-channel: latest/candidate
+            microk8s-addons: "dns storage rbac ingress metallb:10.64.140.43-10.64.140.49"
+            juju-channel: 2.9/stable
+
+      - name: Install tools
+        run: |
+          sudo apt update
+          sudo apt install tox
+
+      - name: Build ROCK
         uses: canonical/craft-actions/rockcraft-pack@main
         id: rockcraft
         with:
