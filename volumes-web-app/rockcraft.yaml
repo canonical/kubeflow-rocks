@@ -97,7 +97,7 @@ parts:
     override-stage: |
       cp -r apps $CRAFT_PRIME
       cp entrypoint.py $CRAFT_PRIME
-      cp -r /usr/local/lib/python3.8/dist-packages/* $CRAFT_PRIME
+      #cp -r /usr/local/lib/python3.8/dist-packages/* $CRAFT_PRIME
 
   gunicorn:
     plugin: python
