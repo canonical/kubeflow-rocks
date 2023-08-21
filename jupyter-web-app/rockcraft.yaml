@@ -4,7 +4,7 @@ summary: An image for Jupyter UI
 description: |
   This image is used as part of Charmed Kubeflow product. Jupyter UI web application provides
   users with web UI to access and manipulate Jupyter Notebooks in Charmed Kubeflow.
-version: v1.7.0_20.04_1 # version format: <KF-upstream-version>_<base-version>_<Charmed-KF-version>
+version: v1.7.0_20.04_1 # version format: <KF-upstream-version>_<base-version>_<ROCK-version>
 license: Apache-2.0
 base: ubuntu:20.04
 run-user: _daemon_
@@ -14,6 +14,8 @@ services:
     summary: "jupyter-ui service"
     startup: enabled
     command: "/bin/bash -c gunicorn -w 3 --bind 0.0.0.0:5000 --access-logfile - entrypoint:app"
+    environment:
+      PYTHONPATH: "/"
 platforms:
   amd64:
 
@@ -83,11 +85,8 @@ parts:
       pip3 install $CRAFT_STAGE/kubeflow-1.1-py3-none-any.whl
       cd components/crud-web-apps/jupyter/backend
       cp -r $CRAFT_STAGE/default apps/default/static/
-      cp -r apps $CRAFT_STAGE/
-      cp entrypoint.py $CRAFT_STAGE
-    override-stage: |
-      cp -r apps $CRAFT_PRIME
-      cp entrypoint.py $CRAFT_PRIME
+      cp -r apps $CRAFT_PART_INSTALL
+      cp entrypoint.py $CRAFT_PART_INSTALL
       cp -r /usr/local/lib/python3.8/dist-packages/* $CRAFT_PRIME
 
   gunicorn:
