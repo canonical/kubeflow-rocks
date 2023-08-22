@@ -4,8 +4,8 @@ on:
   workflow_call:
 
 jobs:
-  build:
-    name: Build rocks
+  build-and-test-rocks:
+    name: Build and test rocks
     runs-on: ubuntu-22.04
     outputs:
       rockcraft-out: ${{ steps.rockcraft.outputs.rock }}
@@ -60,7 +60,7 @@ jobs:
 
       - name: Unit tests
         run: |
-          tox -e unit
+          tox -e integrity
         working-directory: ./${{ matrix.rock }}
 
       - name: Integration tests
