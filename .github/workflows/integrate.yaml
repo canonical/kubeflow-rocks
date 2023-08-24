@@ -60,7 +60,7 @@ jobs:
 
       - name: Unit tests
         run: |
-          tox -e integrity
+          tox -e unit
         working-directory: ./${{ matrix.rock }}
 
       - name: Integration tests
