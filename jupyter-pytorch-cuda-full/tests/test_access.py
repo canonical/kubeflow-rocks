@@ -28,7 +28,7 @@ def main():
     time.sleep(5)
 
     # retrieve notebook server URL
-    output = subprocess.run(["curl", "http://127.0.0.1:8888/lab"], stdout=subprocess.PIPE).stdout.decode('utf-8')
+    output = subprocess.run(["curl", "http://0.0.0.0:8888/lab"], stdout=subprocess.PIPE).stdout.decode('utf-8')
     # cleanup
     subprocess.run(["docker", "stop", f"{container_id}"])
     subprocess.run(["docker", "rm", f"{container_id}"])
