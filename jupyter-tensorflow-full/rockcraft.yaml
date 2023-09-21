@@ -11,7 +11,7 @@ description: |
 
   Both Tensorflow and Jupyter are installed in Conda environment, which is
   automatically activated.
-version: v1.7.0_20.04_1
+version: v1.8.0_20.04_1
 license: Apache-2.0
 base: ubuntu:20.04
 run-user: _daemon_
@@ -69,7 +69,7 @@ parts:
   kubectl:
     plugin: nil
     stage-snaps:
-      - kubectl/1.24/stable
+      - kubectl/1.25/stable
     organize:
       kubectl: bin/kubectl
     stage:
@@ -94,7 +94,7 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.7-branch # upstream branch
+    source-tag: v1.8-branch # upstream branch
     build-packages:
       - lsb-release
       - wget
