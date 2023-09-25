@@ -8,8 +8,19 @@ from pathlib import Path
 import os
 import subprocess
 import time
+import requests
+import tenacity
 import yaml
 
+
+@tenacity.retry(
+stop=tenacity.stop_after_attempt(5),
+wait=tenacity.wait_fixed(2)
+)
+def check_notebook_server_up(url):
+    response = requests.get(url)
+    response.raise_for_status() # Raise an exception if the request was unsuccessful
+    return response.text
 
 def main():
     """Test running container and imports."""
@@ -24,11 +35,9 @@ def main():
     container_id = subprocess.run(["docker", "run", "-d", "-p", "8888:8888", LOCAL_ROCK_IMAGE], stdout=subprocess.PIPE).stdout.decode('utf-8')
     container_id = container_id[0:12]
 
-    # to ensure container is started
-    time.sleep(5)
+    # Try to reach the notebook server
+    output = check_notebook_server_up("http://0.0.0.0:8888/lab")
 
-    # retrieve notebook server URL
-    output = subprocess.run(["curl", "http://0.0.0.0:8888/lab"], stdout=subprocess.PIPE).stdout.decode('utf-8')
     # cleanup
     subprocess.run(["docker", "stop", f"{container_id}"])
     subprocess.run(["docker", "rm", f"{container_id}"])
