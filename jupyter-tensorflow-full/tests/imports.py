@@ -1,10 +1,19 @@
 #
 # This python script tests loading of required modules
 #
-import tensorflow as tf
-import kfp
+
+# jupyter packages
+import jupyterlab
+import notebook
+import ipykernel
+
+# kubeflow packages
+# TO-DO verfiy proper kfp import. Upgrade might be needed.
+#import kfp
 import kfp_server_api
 import kfserving
+
+# common packages
 import bokeh
 import cloudpickle
 import dill
@@ -19,6 +28,9 @@ import scikit_learn
 import scipy
 import seaborn
 import xgboost
+
+# tensorflow packages
+import tensorflow
 
 # this string is expected by test script
 print("PASSED")
