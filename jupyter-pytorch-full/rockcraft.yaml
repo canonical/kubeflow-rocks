@@ -19,8 +19,8 @@ services:
     environment:
        NB_USER: jovyan
        NB_UID: 1001
-       NB_PREFIX: /
-       HOME: /home/jovyan
+       NB_PREFIX: "/"
+       HOME: "/home/jovyan"
        SHELL: /bin/bash
        LANG: en_US.UTF-8
        LANGUAGE: en_US.UTF-8
