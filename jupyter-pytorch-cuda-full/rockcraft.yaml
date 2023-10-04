@@ -19,8 +19,9 @@ services:
     environment:
        NB_USER: jovyan
        NB_UID: 1001
-       NB_PREFIX: /
-       HOME: /home/jovyan
+       # the following environment variables need to be present in the Pod environment
+       #HOME: ""
+       #NB_PREFIX: ""
        SHELL: /bin/bash
        LANG: en_US.UTF-8
        LANGUAGE: en_US.UTF-8
@@ -30,7 +31,7 @@ services:
        NVIDIA_DRIVER_CAPABILITIES: compute,utility
        LD_LIBRARY_PATH: /usr/local/nvidia/lib:/usr/local/nvidia/lib64
        PYTHONPATH: /opt/conda/lib/python3.8/site-packages/
-    command: ./jupyter lab --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --allow-root --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url="/" --ServerApp.authenticate_prometheus=False
+    command: bash -c './jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url=${NB_PREFIX} --ServerApp.authenticate_prometheus=False'
     working-dir: /opt/conda/bin/
 platforms:
   amd64:

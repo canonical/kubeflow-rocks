@@ -2,7 +2,7 @@
 # https://github.com/kubeflow/kubeflow/blob/v1.7-branch/components/example-notebook-servers/base/Dockerfile
 # https://github.com/kubeflow/kubeflow/blob/v1.7-branch/components/example-notebook-servers/jupyter/Dockerfile
 # https://github.com/kubeflow/kubeflow/blob/v1.7-branch/components/example-notebook-servers/jupyter-tensorflow-full/cuda.Dockerfile
-name: jupyter-tensorflow-cude-full
+name: jupyter-tensorflow-cuda-full
 summary: An image for using Jupyter & Tensorflow on GPUs
 description: |
   This image is used as part of the Charmed Kubeflow product. It is deployed
@@ -23,15 +23,16 @@ services:
     environment:
       NB_USER: jovyan
       NB_UID: 1001
-      NB_PREFIX: /
-      HOME: /home/jovyan
+      # the following environment variables need to be present in the Pod environment
+      #HOME: ""
+      #NB_PREFIX: ""
       SHELL: /bin/bash
       LANG: en_US.UTF-8
       LANGUAGE: en_US.UTF-8
       LC_ALL: en_US.UTF-8
       PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       PYTHONPATH: /opt/conda/lib/python3.8/site-packages/
-    command: ./jupyter lab --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url="/" --ServerApp.authenticate_prometheus=False
+    command: bash -c './jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url=${NB_PREFIX} --ServerApp.authenticate_prometheus=False'
     working-dir: /opt/conda/bin/
 platforms:
   amd64:
