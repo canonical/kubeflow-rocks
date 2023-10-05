@@ -19,7 +19,7 @@ services:
     environment:
       NB_USER: jovyan
       NB_UID: 1001
-      # the following environment variables need to be present in the Pod environment
+      # The following environment variables need to be specified in the Pod's environment, and not hardcoded.
       #HOME: ""
       #NB_PREFIX: ""
       SHELL: /bin/bash
