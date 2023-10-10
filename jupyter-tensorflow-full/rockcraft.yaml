@@ -1,7 +1,7 @@
 # Based on the following Dockerfiles:
-# https://github.com/kubeflow/kubeflow/blob/v1.7-branch/components/example-notebook-servers/base/Dockerfile
-# https://github.com/kubeflow/kubeflow/blob/v1.7-branch/components/example-notebook-servers/jupyter/Dockerfile
-# https://github.com/kubeflow/kubeflow/blob/v1.7-branch/components/example-notebook-servers/jupyter-tensorflow-full/cpu.Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.8-branch/components/example-notebook-servers/base/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.8-branch/components/example-notebook-servers/jupyter/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.8-branch/components/example-notebook-servers/jupyter-tensorflow-full/cpu.Dockerfile
 name: jupyter-tensorflow-full
 summary: An image for using Jupyter & Tensorflow on CPUs
 description: |
