@@ -21,8 +21,9 @@ services:
     summary: "jupyter-tensorflow-full service"
     startup: enabled
     environment:
-      NB_USER: jovyan
-      NB_UID: 1001
+      # The following environment variables need to be specified in the Pod's environment, and not hardcoded.
+      #HOME: ""
+      #NB_PREFIX: ""
       NB_PREFIX: /
       HOME: /home/jovyan
       SHELL: /bin/bash
@@ -31,7 +32,7 @@ services:
       LC_ALL: en_US.UTF-8
       PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       PYTHONPATH: /opt/conda/lib/python3.8/site-packages/
-    command: ./jupyter lab --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url="/" --ServerApp.authenticate_prometheus=False
+    command: bash -c './jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url=${NB_PREFIX} --ServerApp.authenticate_prometheus=False'
     working-dir: /opt/conda/bin/
 platforms:
   amd64:
