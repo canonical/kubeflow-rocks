@@ -2,7 +2,8 @@
 # This python script tests loading of required modules
 #
 import tensorflow as tf
-import kfp
+# TO-DO verfiy proper kfp import. Upgrade might be needed.
+#import kfp
 import kfp_server_api
 import kfserving
 import bokeh
