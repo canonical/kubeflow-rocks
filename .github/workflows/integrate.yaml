@@ -43,17 +43,14 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@v39
 
-        # To compare changes between the current commit and the last pushed remote commit set `since_last_remote_commit: true`. e.g
-        # with:
-        #   since_last_remote_commit: true
+      - name: Cancel run if none of files have changed
+        if: steps.changed-files.outputs.any_changed != 'true'
+        uses: andymckay/cancel-action@0.2
 
-      - name: List all changed files
-        run: |
-          if [ ${{ steps.changed-files.outputs.any_changed }} == 'true' ]
-          then
-            echo "No changes detected for ${{ matrix.rock}}. No action required. Exit."
-            exit 1
-          fi
+      - name: Wait for run cancellation
+        if: steps.changed-files.outputs.any_changed != 'true'
+        shell: bash
+        run: while true; do echo "Waiting for job to be cancelled"; sleep 5; done
 
       - name: Build ROCK
         uses: canonical/craft-actions/rockcraft-pack@main
