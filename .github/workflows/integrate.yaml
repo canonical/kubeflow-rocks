@@ -4,11 +4,11 @@ on:
   workflow_call:
 
 jobs:
-  build-and-test-rocks:
-    name: Build and test rocks
+  build-scan-test-rocks:
+    name: Build, scan, and test rock
     runs-on: ubuntu-22.04
-    outputs:
-      rockcraft-out: ${{ steps.rockcraft.outputs.rock }}
+    permissions:
+      pull-requests: read
     strategy:
       matrix:
         rock:
@@ -36,6 +36,24 @@ jobs:
 
       - name: Check out code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v39
+
+        # To compare changes between the current commit and the last pushed remote commit set `since_last_remote_commit: true`. e.g
+        # with:
+        #   since_last_remote_commit: true
+
+      - name: List all changed files
+        run: |
+          if [ ${{ steps.changed-files.outputs.any_changed }} == 'true' ]
+          then
+            echo "No changes detected for ${{ matrix.rock}}. No action required. Exit."
+            exit 1
+          fi
 
       - name: Build ROCK
         uses: canonical/craft-actions/rockcraft-pack@main
@@ -43,11 +61,26 @@ jobs:
         with:
           path: ./${{ matrix.rock }}
 
-      - name: Upload rock as artefact
-        uses: actions/upload-artifact@v3
+      - name: Copy ROCK to Docker
+        id: rock_in_docker
+        run: |
+          NAME=$(yq eval ".name" rockcraft.yaml)
+          VERSION=$(yq eval ".version" rockcraft.yaml)
+          ARCH=$(yq eval ".platforms | keys" rockcraft.yaml | awk -F ' ' '{print $2}')
+          ROCK="${NAME}_${VERSION}_${ARCH}"
+          sudo skopeo --insecure-policy copy oci-archive:$ROCK.rock docker-daemon:$ROCK:$VERSION
+          echo "image=$ROCK:$VERSION" >> "$GITHUB_OUTPUT"
+        working-directory: ${{ matrix.rock }}
+
+      - name: Scan for vulnerabilities
+        id: scan
+        uses: aquasecurity/trivy-action@master
         with:
-            name: kubeflow-rocks
-            path: ${{ steps.rockcraft.outputs.rock }}
+          scan-type: 'image'
+          image-ref: '${{ steps.rock_in_docker.outputs.image }}'
+          format: 'json'
+          output: '${{ matrix.rock }}/trivy-report-${{ matrix.rock }}.json'
+          ignore-unfixed: true
 
       - name: Setup operator environment
         uses: charmed-kubernetes/actions-operator@main
@@ -58,9 +91,9 @@ jobs:
             microk8s-addons: "dns hostpath-storage rbac ingress metallb:10.64.140.43-10.64.140.49"
             juju-channel: 2.9/stable
 
-      - name: Unit tests
+      - name: Sanity tests
         run: |
-          tox -e unit
+          tox -e sanity
         working-directory: ./${{ matrix.rock }}
 
       - name: Integration tests
