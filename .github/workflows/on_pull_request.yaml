@@ -34,4 +34,4 @@ jobs:
     - name: Run Tests
       uses: ./.github/workflows/integrate.yaml
       with:
-      rock: 'jupyter-scipy'
+        rock: 'jupyter-scipy'
