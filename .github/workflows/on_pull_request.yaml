@@ -8,20 +8,35 @@ on:
   pull_request:
 
 jobs:
+  # JOB to run change detection
+  changes:
+    runs-on: ubuntu-22.04
+    # Required permissions
+    permissions:
+      pull-requests: read
+    # Set job outputs to values from filter step
+    outputs:
+      jupyter-scipy: ${{ steps.filter.outputs.jupyter-scipy }}
+    steps:
+    # For pull requests it's not necessary to checkout the code
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          jupyter-scipy:
+            - 'jupyter-scipy/**'
 
-  tests:
-    name: Run Tests
-    strategy:
-      matrix:
-        rock:
-          - jupyter-pytorch-cuda-full
-          - jupyter-pytorch-full
-          - jupyter-tensorflow-cuda-full
-          - jupyter-tensorflow-full
-          - jupyter-scipy
-          - notebook-controller
-          - volumes-web-app
+  test-jupyter-scipy:
+    needs: changes
+    if: ${{ needs.changes.outputs.jupyter-scipy == 'true' }}
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-    uses: ./.github/workflows/integrate.yaml
-    with:
-      rock: ${{ matrix.rock }}
+    - name: Run Tests
+      uses: ./.github/workflows/integrate.yaml
+      with:
+        rock: 'jupyter-scipy'
