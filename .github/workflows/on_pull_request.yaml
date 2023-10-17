@@ -31,11 +31,6 @@ jobs:
     if: ${{ needs.changes.outputs.jupyter-scipy == 'true' }}
     runs-on: ubuntu-22.04
     steps:
-    - name: Check out code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
     - name: Run Tests
       uses: ./.github/workflows/integrate.yaml
       with:

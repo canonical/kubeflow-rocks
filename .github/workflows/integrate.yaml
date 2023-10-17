@@ -28,6 +28,11 @@ jobs:
           remove-codeql: 'true'
           remove-docker-images: 'true'
 
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Build ROCK
         uses: canonical/craft-actions/rockcraft-pack@main
         id: rockcraft
