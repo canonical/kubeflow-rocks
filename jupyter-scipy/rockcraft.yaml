@@ -14,7 +14,7 @@ run-user: _daemon_
 services:
   jupyter:
     override: replace
-    summary: "jupyter-scipy service9"
+    summary: "jupyter-scipy service10"
     startup: enabled
     environment:
       NB_USER: jovyan
