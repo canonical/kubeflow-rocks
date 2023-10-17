@@ -29,9 +29,7 @@ jobs:
           remove-docker-images: 'true'
 
       - name: Check out code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        uses: actions/checkout@v3
 
       - name: Build ROCK
         uses: canonical/craft-actions/rockcraft-pack@main
