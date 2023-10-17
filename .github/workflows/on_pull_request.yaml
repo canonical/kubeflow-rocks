@@ -30,7 +30,8 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.jupyter-scipy == 'true' }}
     runs-on: ubuntu-22.04
-    name: Run Tests
-    uses: ./.github/workflows/integrate.yaml
-    with:
+    steps:
+    - name: Run Tests
+      uses: ./.github/workflows/integrate.yaml
+      with:
       rock: 'jupyter-scipy'
