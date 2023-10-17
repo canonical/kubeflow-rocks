@@ -11,4 +11,17 @@ jobs:
 
   tests:
     name: Run Tests
+    strategy:
+      matrix:
+        rock:
+          - jupyter-pytorch-cuda-full
+          - jupyter-pytorch-full
+          - jupyter-tensorflow-cuda-full
+          - jupyter-tensorflow-full
+          - jupyter-scipy
+          - notebook-controller
+          - volumes-web-app
+
     uses: ./.github/workflows/integrate.yaml
+    with:
+      rock: ${{ matrix.rock }}
