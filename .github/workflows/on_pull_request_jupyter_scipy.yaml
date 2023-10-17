@@ -10,7 +10,13 @@ on:
 jobs:
 
   tests:
-    name: Run Tests
-    uses: ./.github/workflows/integrate.yaml
-    with:
-      rock: 'jupyter-scipy'
+    - name: Check out code
+      uses: actions/checkout@v4
+      with:
+        path: 'jupyter-scipy'
+        fetch-depth: 0
+
+    - name: Run Tests
+      uses: ./.github/workflows/integrate.yaml
+      with:
+        rock: 'jupyter-scipy'
