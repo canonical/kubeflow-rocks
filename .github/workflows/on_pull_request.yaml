@@ -29,9 +29,7 @@ jobs:
   test-jupyter-scipy:
     needs: changes
     if: ${{ needs.changes.outputs.jupyter-scipy == 'true' }}
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Run Tests
-      uses: ./.github/workflows/integrate.yaml
-      with:
-        rock: 'jupyter-scipy'
+    name: Run Tests
+    uses: ./.github/workflows/integrate.yaml
+    with:
+      rock: 'jupyter-scipy'
