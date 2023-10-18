@@ -1,7 +1,7 @@
 # Based on the following Dockerfiles:
-# https://github.com/kubeflow/kubeflow/blob/v1.7-branch/components/example-notebook-servers/base/Dockerfile
-# https://github.com/kubeflow/kubeflow/blob/v1.7-branch/components/example-notebook-servers/jupyter/Dockerfile
-# https://github.com/kubeflow/kubeflow/blob/v1.7-branch/components/example-notebook-servers/jupyter-tensorflow-full/cuda.Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.8-branch/components/example-notebook-servers/base/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.8-branch/components/example-notebook-servers/jupyter/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.8-branch/components/example-notebook-servers/jupyter-tensorflow-full/cuda.Dockerfile
 name: jupyter-tensorflow-cude-full
 summary: An image for using Jupyter & Tensorflow on GPUs
 description: |
@@ -11,7 +11,7 @@ description: |
 
   Both Tensorflow and Jupyter are installed in Conda environment, which is
   automatically activated.
-version: v1.7.0_20.04_1
+version: v1.8.0_20.04_1
 license: Apache-2.0
 base: ubuntu:20.04
 run-user: _daemon_
@@ -22,8 +22,9 @@ services:
     startup: enabled
     environment:
       NB_USER: jovyan
-      NB_UID: 1001
-      NB_PREFIX: /
+      # The following environment variables need to be specified in the Pod's environment, and not hardcoded.
+      #HOME: ""
+      #NB_PREFIX: ""
       HOME: /home/jovyan
       SHELL: /bin/bash
       LANG: en_US.UTF-8
@@ -31,7 +32,7 @@ services:
       LC_ALL: en_US.UTF-8
       PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       PYTHONPATH: /opt/conda/lib/python3.8/site-packages/
-    command: ./jupyter lab --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url="/" --ServerApp.authenticate_prometheus=False
+    command: bash -c './jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url=${NB_PREFIX} --ServerApp.authenticate_prometheus=False'
     working-dir: /opt/conda/bin/
 platforms:
   amd64:
@@ -94,7 +95,7 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.7-branch # upstream branch
+    source-tag: v1.8-branch # upstream branch
     build-packages:
       - curl
       - lsb-release
