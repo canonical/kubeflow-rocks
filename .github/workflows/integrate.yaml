@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       rock:
-        description: Path to rockcraft project
+        description: "Path to rock directory, i.e. directory containing rockcraft.yaml"
         required: true
         default: '.'
         type: string
@@ -46,6 +46,7 @@ jobs:
           ROCK="${NAME}_${VERSION}_${ARCH}"
           sudo skopeo --insecure-policy copy oci-archive:$ROCK.rock docker-daemon:$ROCK:$VERSION
           echo "image=$ROCK:$VERSION" >> "$GITHUB_OUTPUT"
+          docker login
         working-directory: ${{ inputs.rock }}
 
       - name: Scan for vulnerabilities
