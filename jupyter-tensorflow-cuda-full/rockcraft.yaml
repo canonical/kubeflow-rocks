@@ -2,7 +2,7 @@
 # https://github.com/kubeflow/kubeflow/blob/v1.8-branch/components/example-notebook-servers/base/Dockerfile
 # https://github.com/kubeflow/kubeflow/blob/v1.8-branch/components/example-notebook-servers/jupyter/Dockerfile
 # https://github.com/kubeflow/kubeflow/blob/v1.8-branch/components/example-notebook-servers/jupyter-tensorflow-full/cuda.Dockerfile
-name: jupyter-tensorflow-cude-full
+name: jupyter-tensorflow-cuda-full
 summary: An image for using Jupyter & Tensorflow on GPUs
 description: |
   This image is used as part of the Charmed Kubeflow product. It is deployed
