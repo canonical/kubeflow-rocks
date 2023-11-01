@@ -11,7 +11,7 @@ description: |
 
   Both Tensorflow and Jupyter are installed in Conda environment, which is
   automatically activated.
-version: v1.7.0_20.04_1
+version: v1.7.0-20.04-1
 license: Apache-2.0
 base: ubuntu:20.04
 run-user: _daemon_
@@ -23,8 +23,8 @@ services:
     environment:
       NB_USER: jovyan
       NB_UID: 1001
+      HOME: "/home/jovyan" # ensure that `working-dir` points to this directory
       # The following environment variables need to be specified in the Pod's environment, and not hardcoded.
-      #HOME: ""
       #NB_PREFIX: ""
       SHELL: /bin/bash
       LANG: en_US.UTF-8
@@ -32,8 +32,8 @@ services:
       LC_ALL: en_US.UTF-8
       PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       PYTHONPATH: /opt/conda/lib/python3.8/site-packages/
-    command: bash -c './jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url=${NB_PREFIX} --ServerApp.authenticate_prometheus=False'
-    working-dir: /opt/conda/bin/
+    command: bash -c '/opt/conda/bin/jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url=${NB_PREFIX} --ServerApp.authenticate_prometheus=False'
+    working-dir: /home/jovyan
 platforms:
   amd64:
 
