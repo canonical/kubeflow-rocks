@@ -24,6 +24,7 @@ jobs:
           - kfam
           - notebook-controller
           - volumes-web-app
+          - tensorboards-web-app
     uses: canonical/charmed-kubeflow-workflows/.github/workflows/build_and_scan_rock.yaml@main
     with:
       rock: ${{ matrix.rock }}
