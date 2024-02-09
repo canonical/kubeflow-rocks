@@ -1,10 +1,10 @@
-# Dockerfile https://github.com/kubeflow/kubeflow/blob/v1.7-branch/components/centraldashboard/Dockerfile
+# Dockerfile https://github.com/kubeflow/kubeflow/blob/v1.8-branch/components/centraldashboard/Dockerfile
 name: kubeflow-central-dashboard
 summary: Kubeflow Landing Page
 description: |
   This component serves as the landing page and central dashboard for Kubeflow deployments.
   It provides a jump-off point to all other facets of the platform.
-version: "1.7"
+version: "1.8"
 license: Apache-2.0
 base: ubuntu@22.04
 platforms:
@@ -13,7 +13,7 @@ run-user: _daemon_
 
 services:
   serve:
-    override: merge
+    override: replace
     summary: "Kubeflow central dashboard service"
     command: "/usr/bin/npm start --prefix /app"
     startup: enabled
@@ -30,10 +30,11 @@ parts:
   builder:
     plugin: dump
     source: https://github.com/kubeflow/kubeflow
+    source-subdir: components/centraldashboard
     source-type: git
-    source-tag: v1.7-branch # upstream branch
+    source-tag: v1.8-branch # upstream branch
     build-snaps:
-      - node/18/stable
+      - node/14/stable
     build-packages:
       - bash
       - chromium-browser
@@ -47,6 +48,7 @@ parts:
     build-environment:
       - CHROME_BIN: /usr/bin/chromium-browser
       - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+      - BUILD_VERSION: "1.8"
     stage-packages:
       - nodejs
       - npm
@@ -55,7 +57,6 @@ parts:
       cd ${CRAFT_PART_SRC}/components/centraldashboard/
 
       # set environment variables
-      export BUILD_VERSION=$(git describe --abbrev=0 --tags)
       export BUILD_COMMIT=$(git rev-parse HEAD)
 
       # Build phase
@@ -71,7 +72,7 @@ parts:
 
       # install build artifacts
       mkdir -p ${CRAFT_PART_INSTALL}/app
-      cp -r * ${CRAFT_PART_INSTALL}/app
+      cp -r ${CRAFT_PART_SRC}/components/centraldashboard/* ${CRAFT_PART_INSTALL}/app
 
       # Change permissions of the /app directory to
       # be owned by the _daemon_ user
