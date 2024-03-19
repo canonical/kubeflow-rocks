@@ -12,10 +12,8 @@ import yaml
 def test_rock():
     """Test rock."""
     rock = yaml.safe_load(Path("rockcraft.yaml").read_text())
-    name = rock["name"]
+    rock_image = rock["name"]
     rock_version = rock["version"]
-    arch = list(rock["platforms"].keys())[0]
-    rock_image = f"{name}_{rock_version}_{arch}"
     LOCAL_ROCK_IMAGE = f"{rock_image}:{rock_version}"
 
     # verify ROCK service
