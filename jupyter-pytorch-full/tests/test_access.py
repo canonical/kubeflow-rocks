@@ -5,9 +5,7 @@
 #
 from pathlib import Path
 
-import os
 import subprocess
-import time
 import requests
 import tenacity
 import yaml

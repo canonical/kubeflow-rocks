@@ -7,10 +7,9 @@ from pathlib import Path
 import pytest
 import subprocess
 import yaml
-from pytest_operator.plugin import OpsTest
 
 @pytest.mark.abort_on_fail
-def test_rock(ops_test: OpsTest):
+def test_rock():
     """Test rock."""
     rock = yaml.safe_load(Path("rockcraft.yaml").read_text())
     name = rock["name"]
