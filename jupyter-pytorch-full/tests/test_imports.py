@@ -20,7 +20,7 @@ def main():
     LOCAL_ROCK_IMAGE = f"{rock_image}:{rock_version}"
     
     print(f"Running command in {LOCAL_ROCK_IMAGE}")
-    script_command = ["bash", "-c", "export PYTHONPATH=$PYTHONPATH:/opt/conda/lib/python3.8/site-packages/keras/api/keras/wrappers/:/opt/conda/lib/python3.8/site-packages/ && python3 /home/jovyan/imports.py"]
+    script_command = ["bash", "-c", "export HOME=/home/jovyan && export PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin && PYTHONPATH=/opt/conda/lib/python3.11/site-packages/  python3.11 /home/jovyan/imports.py"]
     pwd = os.getcwd()
     output = subprocess.run(["docker", "run", "-v", f"{pwd}/tests/:/home/jovyan", LOCAL_ROCK_IMAGE, "exec", "pebble", "exec"] + script_command, stdout=subprocess.PIPE).stdout.decode('utf-8')
     assert "PASSED" in output
