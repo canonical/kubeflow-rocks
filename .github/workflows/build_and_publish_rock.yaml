@@ -30,7 +30,7 @@ on:
 jobs:
   build-publish-rock:
     name: Build and publish ROCK
-    uses: canonical/charmed-kubeflow-workflows/.github/workflows/build_and_publish_rock.yaml@KF-5462-increase-trivy-timout-for-rock-scans
+    uses: canonical/charmed-kubeflow-workflows/.github/workflows/build_and_publish_rock.yaml@main
     with:
       rock-dir: ${{ inputs.rock-dir }}
       source-branch: ${{ inputs.source-branch }}
