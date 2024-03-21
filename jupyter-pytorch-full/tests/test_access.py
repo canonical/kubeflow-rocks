@@ -3,13 +3,11 @@
 # See LICENSE file for licensing details.
 #
 #
-from pathlib import Path
-
 import subprocess
 import requests
 import tenacity
-import yaml
 
+from charmed_kubeflow_chisme.rock import CheckRock
 
 @tenacity.retry(
 stop=tenacity.stop_after_attempt(5),
@@ -22,9 +20,9 @@ def check_notebook_server_up(url):
 
 def main():
     """Test running container and imports."""
-    rock = yaml.safe_load(Path("rockcraft.yaml").read_text())
-    rock_image = rock["name"]
-    rock_version = rock["version"]
+    check_rock = CheckRock("rockcraft.yaml")
+    rock_image = check_rock.get_name()
+    rock_version = check_rock.get_version()
     LOCAL_ROCK_IMAGE = f"{rock_image}:{rock_version}"
     
     print(f"Running {LOCAL_ROCK_IMAGE}")

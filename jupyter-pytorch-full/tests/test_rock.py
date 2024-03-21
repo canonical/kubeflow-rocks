@@ -2,11 +2,8 @@
 # See LICENSE file for licensing details.
 #
 #
-from pathlib import Path
-
 import pytest
 import subprocess
-import yaml
 
 from charmed_kubeflow_chisme.rock import CheckRock
 
