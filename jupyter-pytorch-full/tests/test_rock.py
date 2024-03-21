@@ -8,16 +8,18 @@ import pytest
 import subprocess
 import yaml
 
+from charmed_kubeflow_chisme.rock import CheckRock
+
 @pytest.mark.abort_on_fail
 def test_rock():
     """Test rock."""
-    rock = yaml.safe_load(Path("rockcraft.yaml").read_text())
-    rock_image = rock["name"]
-    rock_version = rock["version"]
+    check_rock = CheckRock("rockcraft.yaml")
+    rock_image = check_rock.get_name()
+    rock_version = check_rock.get_version()
+    rock_services = check_rock.get_services()
     LOCAL_ROCK_IMAGE = f"{rock_image}:{rock_version}"
 
     # verify ROCK service
-    rock_services = rock["services"]
     assert rock_services["jupyter"]
     assert rock_services["jupyter"]["startup"] == "enabled"
 

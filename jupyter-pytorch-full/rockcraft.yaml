@@ -135,7 +135,7 @@ parts:
       "${CONDA_BIN}/conda" config --system --set show_channel_urls true
 
       echo "conda ${MINIFORGE_VERSION:0:-2}" >> "${CONDA_DIR}/conda-meta/pinned"
-      echo "python ${PYTHON_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned"
+      echo "python ==${PYTHON_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned"
 
       # Install the correct versions of python, conda, pip
       "${CONDA_BIN}/conda" install -y -q \
@@ -157,11 +157,11 @@ parts:
       "${CONDA_BIN}/pip" install --no-cache-dir -r jupyter-requirements.txt
 
       # Generate a jupyter lab config
-      "${CONDA_BIN}/jupyter" lab --generate-config
       "${CONDA_BIN}/jupyter" notebook --generate-config
+      "${CONDA_BIN}/jupyter" lab --generate-config
       "${CONDA_BIN}/jupyter" labextension disable "@jupyterlab/apputils-extension:announcements"
 
-      # Install the jupyter-pytorch cpu requirements
+      # Install the jupyter-pytorch requirements
       "${CONDA_BIN}/pip" install --quiet --no-cache-dir --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple \
         torch==${PYTORCH_VERSION} \
         torchvision==${TORCHVISION_VERSION} \
@@ -169,7 +169,7 @@ parts:
       cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-pytorch/requirements.txt requirements.txt
       "${CONDA_BIN}/pip" install --no-cache-dir -r requirements.txt
 
-      # Install the jupyter-pytorch-full cpu requirements
+      # Install the jupyter-pytorch-full requirements
       "${CONDA_BIN}/mamba" install -y -q \
         bokeh==3.2.2 \
         cloudpickle==2.2.1 \
@@ -185,7 +185,7 @@ parts:
       cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-pytorch-full/requirements.txt requirements.txt
       "${CONDA_BIN}/pip" install --no-cache-dir -r requirements.txt
 
-      # Install mlflow
+      # Install mlflow so we can use this with mlflow https://github.com/canonical/data-science-stack/issues/47#issuecomment-2004136344
       "${CONDA_BIN}/pip" install --quiet --no-cache-dir \
         mlflow==${MLFLOW_VERSION}
 

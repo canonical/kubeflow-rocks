@@ -14,7 +14,6 @@ import torchaudio
 # kubeflow packages
 import kfp
 import kfp_server_api
-# import kfserving
 
 # common packages
 import bokeh
