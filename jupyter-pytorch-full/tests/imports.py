@@ -12,10 +12,8 @@ import torchvision
 import torchaudio
 
 # kubeflow packages
-# TO-DO verfiy proper kfp import. Upgrade might be needed.
-#import kfp
+import kfp
 import kfp_server_api
-import kfserving
 
 # common packages
 import bokeh
@@ -26,18 +24,14 @@ import ipywidgets
 import jupyterlab_git
 import matplotlib
 import pandas
-# TO-DO verify how exactly scikit-image is installed
-# /opt/conda/lib/python3.8/site-packages/scikit_image-0.18.1.dist-info
-#import scikit_image
-# TO-DO verify how exactly scikit-learn is installed
-# /opt/conda/lib/python3.8/site-packages/scikit_learn-0.24.2.dist-info
-#import scikit_learn
+import sklearn
+import skimage 
 import scipy
 import seaborn
 import xgboost
 
-# pytorch packages
-import fastai
+# mlflow package
+import mlflow
 
 # this string is expected by test script
 print("PASSED")

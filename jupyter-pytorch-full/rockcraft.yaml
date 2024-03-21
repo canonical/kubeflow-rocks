@@ -7,9 +7,9 @@ description: |
 
   Both PyTorch and Jupyter are installed in Conda environment, which is
   automatically activated.
-version: v1.8.0_20.04_1 # version format: <KF-upstream-version>_<base-version>_<Charmed-KF-version>
+version: "1.8.0"
 license: Apache-2.0
-base: ubuntu:20.04
+base: ubuntu@20.04
 run-user: _daemon_
 services:
   jupyter:
@@ -26,7 +26,7 @@ services:
        LANGUAGE: en_US.UTF-8
        LC_ALL: en_US.UTF-8
        PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-       PYTHONPATH: /opt/conda/lib/python3.8/site-packages/
+       PYTHONPATH: /opt/conda/lib/python3.11/site-packages/
     command: ./jupyter lab --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url="/" --ServerApp.authenticate_prometheus="False"
     working-dir: /opt/conda/bin/
 platforms:
@@ -61,12 +61,13 @@ parts:
       - unzip
       - vim
       - wget
+      - xz-utils
       - zip
 
   kubectl:
     plugin: nil
     stage-snaps:
-      - kubectl/1.25/stable
+      - kubectl/1.27/stable
     organize:
       kubectl: bin/kubectl
     stage:
@@ -97,14 +98,20 @@ parts:
       - wget
     build-environment:
       - MINIFORGE_ARCH: "x86_64"
-      - MINIFORGE_VERSION: "4.10.1-4"
-      - PIP_VERSION: "21.1.2"
-      - PYTHON_VERSION: "3.8.10"
+      - MINIFORGE_VERSION: "23.3.1-1"
+      - PIP_VERSION: "23.2.1"
+      - PYTHON_VERSION: "3.11.6"
       - HOME: "/home/jovyan"
       - CONDA_DIR: "/opt/conda"
       - CONDA_BIN: "/opt/conda/bin"
+      - JUPYTERLAB_VERSION: "3.6.6"
+      - JUPYTER_VERSION: "6.5.6"
+      - PYTORCH_VERSION: "2.1.0"
+      - TORCHAUDIO_VERSION: "2.1.0"
+      - TORCHVISION_VERSION: "0.16.0"
+      - MLFLOW_VERSION: "2.1.1"
     stage-packages:
-      - python3.8-distutils
+      - python3-distutils
     override-build: |
       set -xe
       mkdir -p "$CONDA_DIR" "$HOME"
@@ -128,7 +135,7 @@ parts:
       "${CONDA_BIN}/conda" config --system --set show_channel_urls true
 
       echo "conda ${MINIFORGE_VERSION:0:-2}" >> "${CONDA_DIR}/conda-meta/pinned"
-      echo "python ${PYTHON_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned"
+      echo "python ==${PYTHON_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned"
 
       # Install the correct versions of python, conda, pip
       "${CONDA_BIN}/conda" install -y -q \
@@ -141,19 +148,46 @@ parts:
       "${CONDA_BIN}/conda" clean -a -f -y
 
       # Install the jupyter python requirements
+      echo "jupyterlab ==${JUPYTERLAB_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned
+      echo "notebook ==${JUPYTER_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned
+      "${CONDA_BIN}/conda" install -y -q \
+        jupyterlab==${JUPYTERLAB_VERSION} \
+        notebook==${JUPYTER_VERSION}
       cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter/requirements.txt jupyter-requirements.txt
       "${CONDA_BIN}/pip" install --no-cache-dir -r jupyter-requirements.txt
 
       # Generate a jupyter lab config
+      "${CONDA_BIN}/jupyter" notebook --generate-config
       "${CONDA_BIN}/jupyter" lab --generate-config
+      "${CONDA_BIN}/jupyter" labextension disable "@jupyterlab/apputils-extension:announcements"
 
-      # Install the jupyter-pytorch cpu requirements
-      cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-pytorch/cpu-requirements.txt cpu-requirements.txt
-      "${CONDA_BIN}/pip" install --no-cache-dir -r cpu-requirements.txt
+      # Install the jupyter-pytorch requirements
+      "${CONDA_BIN}/pip" install --quiet --no-cache-dir --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple \
+        torch==${PYTORCH_VERSION} \
+        torchvision==${TORCHVISION_VERSION} \
+        torchaudio==${TORCHAUDIO_VERSION}
+      cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-pytorch/requirements.txt requirements.txt
+      "${CONDA_BIN}/pip" install --no-cache-dir -r requirements.txt
 
-      # Install the jupyter-pytorch-full cpu requirements
+      # Install the jupyter-pytorch-full requirements
+      "${CONDA_BIN}/mamba" install -y -q \
+        bokeh==3.2.2 \
+        cloudpickle==2.2.1 \
+        dill==0.3.7 \
+        ipympl==0.9.3 \
+        matplotlib==3.8.0 \
+        pandas==2.1.1 \
+        scikit-image==0.22.0 \
+        scikit-learn==1.3.1 \
+        scipy==1.11.3 \
+        seaborn==0.13.0 \
+        xgboost==1.7.6
       cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-pytorch-full/requirements.txt requirements.txt
       "${CONDA_BIN}/pip" install --no-cache-dir -r requirements.txt
+
+      # Install mlflow so we can use this with mlflow https://github.com/canonical/data-science-stack/issues/47#issuecomment-2004136344
+      "${CONDA_BIN}/pip" install --quiet --no-cache-dir \
+        mlflow==${MLFLOW_VERSION}
 
       # Create some directories for staging files
       mkdir -p "${CRAFT_PART_INSTALL}/opt" "${CRAFT_PART_INSTALL}/etc" "${CRAFT_PART_INSTALL}/home"
