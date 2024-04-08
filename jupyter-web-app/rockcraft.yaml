@@ -25,7 +25,7 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.8-branch  # upstream branch
+    source-tag: v1.8-branch
     source-depth: 1
     build-packages:
       - python3-venv
