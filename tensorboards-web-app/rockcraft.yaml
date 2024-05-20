@@ -1,0 +1,135 @@
+name: tensorboards-web-app
+summary: Tensorboards Web App
+description: |
+  This web app is responsible for allowing the user to manipulate tensorboards in their Kubeflow
+  cluster.
+version: "1.8"
+license: Apache-2.0
+base: ubuntu@22.04
+platforms:
+  amd64:
+run-user: _daemon_
+
+services:
+  tensorboards-web-app:
+    override: replace
+    summary: "Tensorboards web app service"
+    startup: enabled
+    command: '/bin/bash -c "gunicorn -w 3 --bind 0.0.0.0:5000 --access-logfile - entrypoint:app"'
+    working-dir: "/src/"
+
+parts:
+  security-team-requirement:
+    plugin: nil
+    override-build: |
+      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
+      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && \
+      dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
+      > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
+
+  backend:
+    plugin: nil
+    source: https://github.com/kubeflow/kubeflow
+    source-type: git
+    source-tag: v1.8-branch
+    source-depth: 1
+    build-packages:
+      - python3-venv
+      - python3-setuptools
+      - python3-pip
+    override-build: |
+      python3 -m pip install wheel
+      # Create a directory that holds the src of the backend copied
+      # from the CRAFT_PART_SRC directory to avoid bringing files that
+      # could affect the build of the backend wheel.
+      # This measure helps keeping the rockcraft and the Dockerfile files
+      # as similar as possible in terms of the operations they perform.
+      # This is replicated in other steps for the frontend.
+      mkdir $CRAFT_STAGE/backend-src && cd $CRAFT_STAGE/backend-src
+      cp -r $CRAFT_PART_SRC/components/crud-web-apps/common/backend/* $CRAFT_STAGE/backend-src/
+      python3 setup.py bdist_wheel
+
+  frontend-lib:
+    plugin: nil
+    source: https://github.com/kubeflow/kubeflow
+    source-type: git
+    source-tag: v1.8-branch
+    source-depth: 1
+    build-snaps:
+      - node/12/stable
+    build-environment:
+      - NG_CLI_ANALYTICS: "ci"
+    override-build: |
+      mkdir $CRAFT_STAGE/frontend-lib-src/ && cd $CRAFT_STAGE/frontend-lib-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/common/frontend/kubeflow-common-lib/package.json $CRAFT_STAGE/frontend-lib-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/common/frontend/kubeflow-common-lib/package-lock.json $CRAFT_STAGE/frontend-lib-src/
+      npm ci
+
+      cp -r $CRAFT_PART_SRC/components/crud-web-apps/common/frontend/kubeflow-common-lib/projects/ $CRAFT_STAGE/frontend-lib-src/projects
+      cp $CRAFT_PART_SRC/components/crud-web-apps/common/frontend/kubeflow-common-lib/angular.json $CRAFT_STAGE/frontend-lib-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/common/frontend/kubeflow-common-lib/tsconfig.json $CRAFT_STAGE/frontend-lib-src/
+      npm run build
+
+  frontend:
+    after: [frontend-lib]
+    plugin: nil
+    source: https://github.com/kubeflow/kubeflow
+    source-type: git
+    source-tag: v1.8-branch
+    source-depth: 1
+    build-snaps:
+      - node/12/stable
+    build-environment:
+      - NG_CLI_ANALYTICS: "ci"
+    override-build: |
+      mkdir $CRAFT_STAGE/frontend-src/ && cd $CRAFT_STAGE/frontend-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/tensorboards/frontend/package.json $CRAFT_STAGE/frontend-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/tensorboards/frontend/package-lock.json $CRAFT_STAGE/frontend-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/tensorboards/frontend/tsconfig.json $CRAFT_STAGE/frontend-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/tensorboards/frontend/tsconfig.app.json $CRAFT_STAGE/frontend-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/tensorboards/frontend/tsconfig.spec.json $CRAFT_STAGE/frontend-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/tensorboards/frontend/angular.json $CRAFT_STAGE/frontend-src/
+      mkdir $CRAFT_STAGE/frontend-src/src/
+      cp -r $CRAFT_PART_SRC/components/crud-web-apps/tensorboards/frontend/src/* $CRAFT_STAGE/frontend-src/src/
+      npm ci
+
+      mkdir -p $CRAFT_STAGE/frontend-src/node_modules/kubeflow
+      cp -r $CRAFT_STAGE/frontend-lib-src/dist/kubeflow/* $CRAFT_STAGE/frontend-src/node_modules/kubeflow
+      
+      npm run build -- --output-path=./dist --configuration=production
+
+  webapp:
+    after: [backend, frontend]
+    plugin: nil
+    source: https://github.com/kubeflow/kubeflow
+    source-type: git
+    source-tag: v1.8-branch
+    source-depth: 1
+    build-packages:
+      - python3-venv
+      - python3-setuptools
+      - python3-pip
+    override-build: |
+      cd $CRAFT_STAGE/backend-src/ && pip install .
+
+      # Promote the packages we've installed from the local env to the primed image
+      mkdir -p $CRAFT_PART_INSTALL/usr/local/lib/python3.10/dist-packages
+      cp -fr /usr/local/lib/python3.10/dist-packages/* $CRAFT_PART_INSTALL/usr/local/lib/python3.10/dist-packages/
+
+      mkdir $CRAFT_PART_INSTALL/src && cd $CRAFT_PART_INSTALL/src
+      mkdir $CRAFT_PART_INSTALL/src/app/
+      cp -r $CRAFT_PART_SRC/components/crud-web-apps/tensorboards/backend/app/* $CRAFT_PART_INSTALL/src/app/
+      cp -r $CRAFT_PART_SRC/components/crud-web-apps/tensorboards/backend/entrypoint.py $CRAFT_PART_INSTALL/src/
+      cp -r $CRAFT_PART_SRC/components/crud-web-apps/tensorboards/backend/Makefile $CRAFT_PART_INSTALL/src/
+
+      cp -r $CRAFT_STAGE/frontend-src/dist/ $CRAFT_PART_INSTALL/src/app/static
+
+  gunicorn:
+    plugin: python
+    source: https://github.com/kubeflow/kubeflow.git
+    source-tag: v1.8-branch
+    source-depth: 1
+    python-requirements:
+    - components/crud-web-apps/tensorboards/backend/requirements.txt
+    stage-packages:
+    - python3-venv
