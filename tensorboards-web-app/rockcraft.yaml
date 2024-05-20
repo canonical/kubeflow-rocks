@@ -1,3 +1,4 @@
+# Based on https://github.com/kubeflow/kubeflow/blob/v1.8-branch/components/crud-web-apps/tensorboards/Dockerfile
 name: tensorboards-web-app
 summary: Tensorboards Web App
 description: |
