@@ -19,7 +19,7 @@ def test_rock(ops_test: OpsTest):
     rock_image = f"{name}_{rock_version}_{arch}"
     LOCAL_ROCK_IMAGE = f"{rock_image}:{rock_version}"
 
-    # verify ROCK service
+    # verify rock service
     rock_services = rock["services"]
     assert rock_services["jupyter"]
     assert rock_services["jupyter"]["startup"] == "enabled"

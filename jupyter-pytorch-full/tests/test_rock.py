@@ -16,7 +16,7 @@ def test_rock():
     rock_services = check_rock.get_services()
     LOCAL_ROCK_IMAGE = f"{rock_image}:{rock_version}"
 
-    # verify ROCK service
+    # verify rock service
     assert rock_services["jupyter"]
     assert rock_services["jupyter"]["startup"] == "enabled"
 
