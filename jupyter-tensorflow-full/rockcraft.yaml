@@ -174,7 +174,7 @@ parts:
       cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt/conda"
       cp -r "${HOME}" "${CRAFT_PART_INSTALL}/${HOME}"
 
-  # not-root user for this ROCK should be 'jovyan'
+  # not-root user for this rock should be 'jovyan'
   non-root-user:
     plugin: nil
     after: [conda-jupyter]
