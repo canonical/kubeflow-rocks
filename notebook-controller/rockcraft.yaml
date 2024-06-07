@@ -4,7 +4,7 @@ summary: An image for Jupyter notebook controller
 description: |
   This image is used as part of the Charmed Kubeflow product. The controller allows users to
   create a custom resource "Notebook" (jupyter notebook).
-version: v1.9.0
+version: 1.9.0
 license: Apache-2.0
 base: ubuntu@22.04
 services:
