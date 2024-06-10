@@ -1,5 +1,5 @@
 # Dockerfile https://github.com/kubeflow/kubeflow/blob/v1.9.0-rc.0/components/centraldashboard/Dockerfile
-name: kubeflow-central-dashboard
+name: centraldashboard
 summary: Kubeflow Landing Page
 description: |
   This component serves as the landing page and central dashboard for Kubeflow deployments.
