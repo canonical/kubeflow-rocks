@@ -4,7 +4,7 @@ summary: An image for Jupyter notebook controller
 description: |
   This image is used as part of the Charmed Kubeflow product. The controller allows users to
   create a custom resource "Notebook" (jupyter notebook).
-version: 1.9.0
+version: "1.9.0"
 license: Apache-2.0
 base: ubuntu@22.04
 services:
@@ -18,13 +18,21 @@ platforms:
   amd64:
 
 parts:
+  security-team-requirement:
+    plugin: nil
+    override-build: |
+      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
+      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && \
+       dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) > \
+       ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
+
   notebook-controller:
     plugin: go
     source: https://github.com/kubeflow/kubeflow
     source-type: git
     source-tag: v1.9.0-rc.0
     build-snaps:
-      - go
+      - go/1.17/stable
     build-packages:
       - apt
       - bash
@@ -49,12 +57,6 @@ parts:
       mkdir -p $CRAFT_PART_INSTALL/third_party
       cp third_party/license.txt $CRAFT_PART_INSTALL/third_party/license.txt
       cp -r /root/go/pkg/mod/github.com/hashicorp $CRAFT_PART_INSTALL/third_party/hashicorp
-
-      # security requirement
-      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
-      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && \
-       dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
-       > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
 
   non-root-user:
     plugin: nil
