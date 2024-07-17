@@ -31,7 +31,8 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.7-branch  # upstream branch
+    source-tag: v1.8.0
+    source-subdir: components/crud-web-apps/common/backend
     source-depth: 1
     build-packages:
       - python3-venv
@@ -39,7 +40,7 @@ parts:
       - python3-pip
     override-build: |
       python3 -m pip install wheel
-      cd components/crud-web-apps/common/backend
+      cd $CRAFT_PART_SRC_WORK
       python3 setup.py bdist_wheel
       cp dist/kubeflow-1.1-py3-none-any.whl $CRAFT_STAGE
 
@@ -47,42 +48,45 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.7-branch  # upstream branch
+    source-tag: v1.8.0  # upstream branch
+    source-subdir: components/crud-web-apps/common/frontend/kubeflow-common-lib
     source-depth: 1
     build-snaps:
       - node/12/stable
     build-environment:
       - NG_CLI_ANALYTICS: "ci"
     override-build: |
-      cd components/crud-web-apps/common/frontend/kubeflow-common-lib
+      cd $CRAFT_PART_SRC_WORK
       npm ci
       npm run build
       cp -r dist/kubeflow/ $CRAFT_STAGE
 
   frontend:
-    after: [frontend-lib]
+    after: [ frontend-lib ]
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.7-branch  # upstream branch
+    source-tag: v1.8.0
+    source-subdir: components/crud-web-apps/volumes/frontend
     source-depth: 1
     build-snaps:
       - node/12/stable
     build-environment:
       - NG_CLI_ANALYTICS: "ci"
     override-build: |
-      cd components/crud-web-apps/volumes/frontend
+      cd $CRAFT_PART_SRC_WORK
       npm ci
       cp -r $CRAFT_STAGE/kubeflow/ ./node_modules/  # TODO confirm
       npm run build -- --output-path=./dist/default --configuration=production
       cp -r dist/default $CRAFT_STAGE
 
   webapp:
-    after: [backend, frontend]
+    after: [ backend, frontend ]
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.7-branch  # upstream branch
+    source-tag: v1.8.0
+    source-subdir: components/crud-web-apps/volumes/backend
     source-depth: 1
     build-packages:
       - python3-venv
@@ -90,7 +94,7 @@ parts:
       - python3-pip
     override-build: |
       pip3 install $CRAFT_STAGE/kubeflow-1.1-py3-none-any.whl
-      cd components/crud-web-apps/volumes/backend
+      cd $CRAFT_PART_SRC_WORK
       cp -r $CRAFT_STAGE/default apps/default/static/
       cp -r apps $CRAFT_STAGE/
       cp entrypoint.py $CRAFT_STAGE
@@ -102,16 +106,16 @@ parts:
   gunicorn:
     plugin: python
     source: https://github.com/kubeflow/kubeflow.git
-    source-tag: v1.7-branch  # upstream branch
+    source-tag: v1.8.0
     source-depth: 1
     python-requirements:
-    - components/crud-web-apps/volumes/backend/requirements.txt
+      - components/crud-web-apps/volumes/backend/requirements.txt
     stage-packages:
-    - python3-venv
+      - python3-venv
 
   non-root-user:
     plugin: nil
-    after: [ubuntu]
+    after: [ ubuntu ]
     overlay-script: |
       # Create a user in the $CRAFT_OVERLAY chroot
       groupadd -R $CRAFT_OVERLAY -g 1001 ubuntu
