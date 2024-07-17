@@ -1,9 +1,9 @@
-# Constructed from https://github.com/kubeflow/kubeflow/blob/v1.7-branch/components/profile-controller/Dockerfile
+# Constructed from https://github.com/kubeflow/kubeflow/blob/v1.8.0/components/profile-controller/Dockerfile
 
 name: profile-controller
 summary: Controller for Kubeflow Profile objects
 description: Controller for Kubeflow Profile objects
-version: "1.7.0" # version format: <KF-upstream-version>_<Charmed-KF-version>
+version: "1.8.0"
 
 # TODO: use base: bare
 base: ubuntu:22.04
@@ -27,7 +27,7 @@ parts:
     plugin: go
     source-type: git
     source: https://github.com/kubeflow/kubeflow.git
-    source-tag: v1.7-branch
+    source-tag: v1.8.0
     source-subdir: components/profile-controller
     build-environment:
       - CGO_ENABLED: 0
