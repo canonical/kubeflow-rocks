@@ -3,11 +3,11 @@
 name: profile-controller
 summary: Controller for Kubeflow Profile objects
 description: Controller for Kubeflow Profile objects
-version: "1.8.0"
+version: "v1.8.0"
 
 # TODO: use base: bare
-base: ubuntu:22.04
-build-base: ubuntu:22.04
+base: ubuntu@22.04
+build-base: ubuntu@22.04
 
 license: Apache-2.0
 
