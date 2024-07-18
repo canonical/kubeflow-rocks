@@ -7,7 +7,7 @@ summary: Kubeflow Access Management API
 description: Kubeflow Access Management API provides fine-grain user-namespace level access control.
 version: "v1.8.0"
 license: Apache-2.0
-base: ubuntu:22.04
+base: ubuntu@22.04
 
 platforms:
   amd64:
