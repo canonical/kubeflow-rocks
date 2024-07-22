@@ -4,9 +4,9 @@ description: |
   This web app is responsible for allowing the user to manipulate PVCs in their Kubeflow
   cluster. To achieve this it provides a user friendly way to handle the lifecycle of PVC
   objects.
-version: v1.7.0_1
+version: v1.8.0
 license: Apache-2.0
-base: ubuntu:20.04
+base: ubuntu@20.04
 
 services:
   serve:
@@ -115,7 +115,7 @@ parts:
 
   non-root-user:
     plugin: nil
-    after: [ ubuntu ]
+    after: [ webapp ]
     overlay-script: |
       # Create a user in the $CRAFT_OVERLAY chroot
       groupadd -R $CRAFT_OVERLAY -g 1001 ubuntu
