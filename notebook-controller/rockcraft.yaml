@@ -1,4 +1,4 @@
-# Source https://github.com/kubeflow/kubeflow/blob/v1.9.0-rc.0/components/notebook-controller/Dockerfile
+# Source https://github.com/kubeflow/kubeflow/blob/v1.9.0/components/notebook-controller/Dockerfile
 name: notebook-controller
 summary: An image for Jupyter notebook controller
 description: |
@@ -30,7 +30,7 @@ parts:
     plugin: go
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.9.0-rc.0
+    source-tag: v1.9.0
     build-snaps:
       - go/1.17/stable
     build-packages:
