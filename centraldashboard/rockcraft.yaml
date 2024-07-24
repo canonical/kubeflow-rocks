@@ -1,4 +1,4 @@
-# Dockerfile https://github.com/kubeflow/kubeflow/blob/v1.9.0-rc.0/components/centraldashboard/Dockerfile
+# Dockerfile https://github.com/kubeflow/kubeflow/blob/v1.9.0/components/centraldashboard/Dockerfile
 name: centraldashboard
 summary: Kubeflow Landing Page
 description: |
@@ -12,8 +12,8 @@ platforms:
 run-user: _daemon_
 
 services:
-  serve:
-    override: replace
+  kubeflow-dashboard:
+    override: merge
     summary: "Kubeflow central dashboard service"
     command: "/usr/bin/npm start"
     startup: enabled
@@ -33,7 +33,7 @@ parts:
     source: https://github.com/kubeflow/kubeflow
     source-subdir: components/centraldashboard
     source-type: git
-    source-tag: v1.9.0-rc.0 # upstream branch
+    source-tag: v1.9.0 # upstream branch
     build-snaps:
       - node/16/stable
     build-packages:
