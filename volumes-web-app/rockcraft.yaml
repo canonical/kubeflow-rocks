@@ -4,7 +4,7 @@ description: |
   This web app is responsible for allowing the user to manipulate PVCs in their Kubeflow
   cluster. To achieve this it provides a user friendly way to handle the lifecycle of PVC
   objects.
-version: v1.8.0
+version: v1.9.0
 license: Apache-2.0
 base: ubuntu@20.04
 
@@ -31,7 +31,7 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.8.0
+    source-tag: v1.9.0
     source-subdir: components/crud-web-apps/common/backend
     source-depth: 1
     build-packages:
@@ -48,7 +48,7 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.8.0  # upstream branch
+    source-tag: v1.9.0
     source-subdir: components/crud-web-apps/common/frontend/kubeflow-common-lib
     source-depth: 1
     build-snaps:
@@ -66,7 +66,7 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.8.0
+    source-tag: v1.9.0
     source-subdir: components/crud-web-apps/volumes/frontend
     source-depth: 1
     build-snaps:
@@ -85,7 +85,7 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.8.0
+    source-tag: v1.9.0
     source-subdir: components/crud-web-apps/volumes/backend
     source-depth: 1
     build-packages:
@@ -106,7 +106,7 @@ parts:
   gunicorn:
     plugin: python
     source: https://github.com/kubeflow/kubeflow.git
-    source-tag: v1.8.0
+    source-tag: v1.9.0
     source-depth: 1
     python-requirements:
       - components/crud-web-apps/volumes/backend/requirements.txt
