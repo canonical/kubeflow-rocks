@@ -3,7 +3,7 @@
 name: profile-controller
 summary: Controller for Kubeflow Profile objects
 description: Controller for Kubeflow Profile objects
-version: "v1.8.0"
+version: "v1.9.0"
 
 # TODO: use base: bare
 base: ubuntu@22.04
@@ -27,7 +27,7 @@ parts:
     plugin: go
     source-type: git
     source: https://github.com/kubeflow/kubeflow.git
-    source-tag: v1.8.0
+    source-tag: v1.9.0
     source-subdir: components/profile-controller
     build-environment:
       - CGO_ENABLED: 0
