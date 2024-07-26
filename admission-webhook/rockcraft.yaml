@@ -28,15 +28,19 @@ parts:
       (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
 
   admission-webhook:
-    plugin: go
+    plugin: nil
     build-snaps:
       - go/1.21/stable
     source: https://github.com/kubeflow/kubeflow.git
     source-tag: v1.9.0
     source-depth: 1
     source-subdir: components/admission-webhook
-    organize:
-      webhook: "bin/webhook"
+    build-environment:
+      - CGO_ENABLED: 0
+      - GOOS: linux
+    override-build: |
+      cd $CRAFT_PART_SRC_WORK
+      go build -o $CRAFT_PART_INSTALL/webhook -a .
 
   non-root-user:
     plugin: nil
