@@ -13,7 +13,7 @@ services:
     summary: "tensorboard-controller service"
     startup: enabled
     user: ubuntu
-    command: "/manager"
+    command: "tensorboard-controller"
 platforms:
   amd64:
 
@@ -33,7 +33,7 @@ parts:
     source-tag: v1.9.0
     source-subdir: components/tensorboard-controller
     build-snaps:
-      - go/1.17/stable
+      - go/1.21/stable
     build-packages:
       - apt
       - bash
@@ -42,14 +42,6 @@ parts:
       - GOOS: linux
     stage-packages:
       - bash
-    override-build: |
-      cd $CRAFT_PART_SRC_WORK
-
-      # build
-      rm -f go.sum
-      go mod tidy
-      go mod download all
-      go build -a -mod=mod -o $CRAFT_PART_INSTALL/manager main.go
 
   non-root-user:
     plugin: nil
