@@ -1,3 +1,4 @@
+# Based on https://github.com/kubeflow/kubeflow/blob/v1.9.0/components/crud-web-apps/volumes/Dockerfile
 name: volumes-web-app
 summary: Volumes Web App
 description: |
@@ -7,26 +8,21 @@ description: |
 version: v1.9.0
 license: Apache-2.0
 base: ubuntu@20.04
+platforms:
+  amd64:
+
 
 services:
-  serve:
+  volumes-ui:
     override: replace
-    summary: "volumes service"
-    command: gunicorn -w 3 --bind 0.0.0.0:5000 --access-logfile - entrypoint:app
+    summary: "Volumes web app service"
+    command: '/bin/bash -c "gunicorn -w 3 --bind 0.0.0.0:5000 --access-logfile - entrypoint:app"'
     startup: enabled
     user: ubuntu
     environment:
       NODE_ENV: production
-platforms:
-  amd64:
 
 parts:
-  security-team-requirement:
-    plugin: nil
-    override-build: |
-      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
-      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
-
   backend:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
@@ -80,6 +76,16 @@ parts:
       npm run build -- --output-path=./dist/default --configuration=production
       cp -r dist/default $CRAFT_STAGE
 
+  gunicorn:
+    plugin: python
+    source: https://github.com/kubeflow/kubeflow.git
+    source-tag: v1.9.0
+    source-depth: 1
+    python-requirements:
+      - components/crud-web-apps/volumes/backend/requirements.txt
+    stage-packages:
+      - python3-venv
+
   webapp:
     after: [ backend, frontend ]
     plugin: nil
@@ -103,15 +109,11 @@ parts:
       cp entrypoint.py $CRAFT_PRIME
       #cp -r /usr/local/lib/python3.8/dist-packages/* $CRAFT_PRIME
 
-  gunicorn:
-    plugin: python
-    source: https://github.com/kubeflow/kubeflow.git
-    source-tag: v1.9.0
-    source-depth: 1
-    python-requirements:
-      - components/crud-web-apps/volumes/backend/requirements.txt
-    stage-packages:
-      - python3-venv
+  security-team-requirement:
+    plugin: nil
+    override-build: |
+      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
+      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
 
   non-root-user:
     plugin: nil
