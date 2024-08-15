@@ -43,7 +43,19 @@ def test_rock(rock_test_env):
             "exec",
             "ls",
             "-la",
-            "/entrypoint.py",
+            "/src",
+        ],
+        check=True,
+    )
+
+    subprocess.run(
+        [
+            "docker",
+            "run",
+            LOCAL_ROCK_IMAGE,
+            "exec",
+            "cat",
+            "/src/entrypoint.py",
         ],
         check=True,
     )
