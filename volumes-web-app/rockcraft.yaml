@@ -7,13 +7,13 @@ description: |
   objects.
 version: v1.9.0
 license: Apache-2.0
-base: ubuntu@20.04
+base: ubuntu@22.04
 platforms:
   amd64:
 run-user: _daemon_
 
 services:
-  volumes-ui:
+  kubeflow-volumes:
     override: replace
     summary: "Volumes web app service"
     startup: enabled
