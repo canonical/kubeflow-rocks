@@ -1,37 +1,32 @@
+# Based on https://github.com/kubeflow/kubeflow/blob/v1.9.0/components/crud-web-apps/volumes/Dockerfile
 name: volumes-web-app
 summary: Volumes Web App
 description: |
   This web app is responsible for allowing the user to manipulate PVCs in their Kubeflow
   cluster. To achieve this it provides a user friendly way to handle the lifecycle of PVC
   objects.
-version: v1.7.0_1
+version: 1.9.0
 license: Apache-2.0
-base: ubuntu:20.04
-
-services:
-  serve:
-    override: replace
-    summary: "volumes service"
-    command: gunicorn -w 3 --bind 0.0.0.0:5000 --access-logfile - entrypoint:app
-    startup: enabled
-    user: ubuntu
-    environment:
-      NODE_ENV: production
+base: ubuntu@22.04
 platforms:
   amd64:
+run-user: _daemon_
 
+services:
+  kubeflow-volumes:
+    override: replace
+    summary: "Volumes web app service"
+    startup: enabled
+    command: '/bin/bash -c "gunicorn -w 3 --bind 0.0.0.0:5000 --access-logfile - entrypoint:app"'
+    working-dir: "/src/"
+    environment:
+      PYTHONPATH: "/"
 parts:
-  security-team-requirement:
-    plugin: nil
-    override-build: |
-      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
-      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
-
   backend:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.7-branch  # upstream branch
+    source-tag: v1.9.0
     source-depth: 1
     build-packages:
       - python3-venv
@@ -39,82 +34,100 @@ parts:
       - python3-pip
     override-build: |
       python3 -m pip install wheel
-      cd components/crud-web-apps/common/backend
+      # Create a directory that holds the src of the backend copied
+      # from the CRAFT_PART_SRC directory to avoid bringing files that
+      # could affect the build of the backend wheel.
+      # This measure helps keeping the rockcraft and the Dockerfile files
+      # as similar as possible in terms of the operations they perform.
+      # This is replicated in other steps for the frontend.
+      mkdir $CRAFT_STAGE/backend-src && cd $CRAFT_STAGE/backend-src
+      cp -r $CRAFT_PART_SRC/components/crud-web-apps/common/backend/* $CRAFT_STAGE/backend-src/
       python3 setup.py bdist_wheel
-      cp dist/kubeflow-1.1-py3-none-any.whl $CRAFT_STAGE
 
   frontend-lib:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.7-branch  # upstream branch
+    source-tag: v1.9.0
     source-depth: 1
     build-snaps:
       - node/12/stable
     build-environment:
       - NG_CLI_ANALYTICS: "ci"
     override-build: |
-      cd components/crud-web-apps/common/frontend/kubeflow-common-lib
+      mkdir $CRAFT_STAGE/frontend-lib-src/ && cd $CRAFT_STAGE/frontend-lib-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/common/frontend/kubeflow-common-lib/package.json $CRAFT_STAGE/frontend-lib-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/common/frontend/kubeflow-common-lib/package-lock.json $CRAFT_STAGE/frontend-lib-src/
       npm ci
+
+      cp -r $CRAFT_PART_SRC/components/crud-web-apps/common/frontend/kubeflow-common-lib/projects/ $CRAFT_STAGE/frontend-lib-src/projects
+      cp $CRAFT_PART_SRC/components/crud-web-apps/common/frontend/kubeflow-common-lib/angular.json $CRAFT_STAGE/frontend-lib-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/common/frontend/kubeflow-common-lib/tsconfig.json $CRAFT_STAGE/frontend-lib-src/
       npm run build
-      cp -r dist/kubeflow/ $CRAFT_STAGE
 
   frontend:
     after: [frontend-lib]
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.7-branch  # upstream branch
+    source-tag: v1.9.0
     source-depth: 1
     build-snaps:
       - node/12/stable
     build-environment:
       - NG_CLI_ANALYTICS: "ci"
     override-build: |
-      cd components/crud-web-apps/volumes/frontend
+      mkdir $CRAFT_STAGE/frontend-src/ && cd $CRAFT_STAGE/frontend-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/volumes/frontend/package.json $CRAFT_STAGE/frontend-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/volumes/frontend/package-lock.json $CRAFT_STAGE/frontend-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/volumes/frontend/tsconfig.json $CRAFT_STAGE/frontend-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/volumes/frontend/tsconfig.app.json $CRAFT_STAGE/frontend-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/volumes/frontend/tsconfig.spec.json $CRAFT_STAGE/frontend-src/
+      cp $CRAFT_PART_SRC/components/crud-web-apps/volumes/frontend/angular.json $CRAFT_STAGE/frontend-src/
+      mkdir $CRAFT_STAGE/frontend-src/src/
+      cp -r $CRAFT_PART_SRC/components/crud-web-apps/volumes/frontend/src/* $CRAFT_STAGE/frontend-src/src/
       npm ci
-      cp -r $CRAFT_STAGE/kubeflow/ ./node_modules/  # TODO confirm
-      npm run build -- --output-path=./dist/default --configuration=production
-      cp -r dist/default $CRAFT_STAGE
+
+      mkdir -p $CRAFT_STAGE/frontend-src/node_modules/kubeflow
+      cp -r $CRAFT_STAGE/frontend-lib-src/dist/kubeflow/* $CRAFT_STAGE/frontend-src/node_modules/kubeflow
+      npm run build -- --output-path=$CRAFT_STAGE/frontend-src/dist/default --configuration=production
+
+  gunicorn:
+    plugin: python
+    source: https://github.com/kubeflow/kubeflow.git
+    source-tag: v1.9.0
+    source-depth: 1
+    python-requirements:
+      - components/crud-web-apps/volumes/backend/requirements.txt
+    stage-packages:
+      - python3-venv
 
   webapp:
-    after: [backend, frontend]
+    after: [backend, frontend, gunicorn]
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.7-branch  # upstream branch
+    source-tag: v1.9.0
     source-depth: 1
     build-packages:
       - python3-venv
       - python3-setuptools
       - python3-pip
     override-build: |
-      pip3 install $CRAFT_STAGE/kubeflow-1.1-py3-none-any.whl
-      cd components/crud-web-apps/volumes/backend
-      cp -r $CRAFT_STAGE/default apps/default/static/
-      cp -r apps $CRAFT_STAGE/
-      cp entrypoint.py $CRAFT_STAGE
-    override-stage: |
-      cp -r apps $CRAFT_PRIME
-      cp entrypoint.py $CRAFT_PRIME
-      #cp -r /usr/local/lib/python3.8/dist-packages/* $CRAFT_PRIME
+      cd $CRAFT_STAGE/backend-src/ && pip install .
 
-  gunicorn:
-    plugin: python
-    source: https://github.com/kubeflow/kubeflow.git
-    source-tag: v1.7-branch  # upstream branch
-    source-depth: 1
-    python-requirements:
-    - components/crud-web-apps/volumes/backend/requirements.txt
-    stage-packages:
-    - python3-venv
+      # Promote the packages we've installed from the local env to the primed image
+      mkdir -p $CRAFT_PART_INSTALL/usr/local/lib/python3.10/dist-packages
+      cp -fr /usr/local/lib/python3.10/dist-packages/* $CRAFT_PART_INSTALL/usr/local/lib/python3.10/dist-packages/
 
-  non-root-user:
+      mkdir $CRAFT_PART_INSTALL/src && cd $CRAFT_PART_INSTALL/src
+      mkdir $CRAFT_PART_INSTALL/src/apps/
+      cp -r $CRAFT_PART_SRC/components/crud-web-apps/volumes/backend/apps/* $CRAFT_PART_INSTALL/src/apps/
+      cp -r $CRAFT_PART_SRC/components/crud-web-apps/volumes/backend/entrypoint.py $CRAFT_PART_INSTALL/src/
+      cp -r $CRAFT_STAGE/frontend-src/dist/default/ $CRAFT_PART_INSTALL/src/apps/default/static
+
+  security-team-requirement:
     plugin: nil
-    after: [ubuntu]
-    overlay-script: |
-      # Create a user in the $CRAFT_OVERLAY chroot
-      groupadd -R $CRAFT_OVERLAY -g 1001 ubuntu
-      useradd -R $CRAFT_OVERLAY -M -r -u 1001 -g ubuntu ubuntu
-    override-prime: |
-      craftctl default
+    override-build: |
+      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
+      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
