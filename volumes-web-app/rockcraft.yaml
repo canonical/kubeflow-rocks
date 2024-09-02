@@ -5,7 +5,7 @@ description: |
   This web app is responsible for allowing the user to manipulate PVCs in their Kubeflow
   cluster. To achieve this it provides a user friendly way to handle the lifecycle of PVC
   objects.
-version: v1.9.0
+version: 1.9.0
 license: Apache-2.0
 base: ubuntu@22.04
 platforms:
