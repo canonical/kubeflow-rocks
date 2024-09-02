@@ -13,7 +13,7 @@ services:
     summary: "tensorboard-controller service"
     startup: enabled
     user: ubuntu
-    command: "tensorboard-controller"
+    command: "manager"
 platforms:
   amd64:
 
@@ -42,6 +42,8 @@ parts:
       - GOOS: linux
     stage-packages:
       - bash
+    go-buildtags:
+      - -o manager
 
   non-root-user:
     plugin: nil
