@@ -13,7 +13,7 @@ services:
     summary: "tensorboard-controller service"
     startup: enabled
     user: ubuntu
-    command: "tensorboard-controller"
+    command: "/manager"
 platforms:
   amd64:
 
@@ -42,6 +42,15 @@ parts:
       - GOOS: linux
     stage-packages:
       - bash
+
+  copy-executable:
+    plugin: nil
+    after: [tensorboard-controller]
+    source: https://github.com/kubeflow/kubeflow
+    source-type: git
+    source-tag: v1.9.0
+    override-build: |
+      cp ${CRAFT_STAGE}/bin/tensorboard-controller ${CRAFT_PART_INSTALL}/manager
 
   non-root-user:
     plugin: nil
