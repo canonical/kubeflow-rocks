@@ -97,7 +97,7 @@ parts:
       mkdir -p $CRAFT_STAGE/frontend-src/node_modules/kubeflow
       cp -r $CRAFT_STAGE/frontend-lib-src/dist/kubeflow/* $CRAFT_STAGE/frontend-src/node_modules/kubeflow
       
-      npm run build -- --output-path=./dist --configuration=production
+      npm run build -- --output-path=$CRAFT_STAGE/frontend-src/dist --configuration=production
 
   webapp:
     after: [backend, frontend]
