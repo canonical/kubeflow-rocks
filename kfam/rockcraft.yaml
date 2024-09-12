@@ -38,7 +38,7 @@ parts:
     build-environment:
       - CGO_ENABLED: 0
       - GOOS: linux
-    # Override-build because we want to move the hashicorp librarry folder
+    # Override-build because we want to move the hashicorp library folder
     override-build: |
       # cd into $CRAFT_PART_SRC_WORK due to https://github.com/canonical/craft-parts/issues/427
       cd $CRAFT_PART_SRC_WORK
