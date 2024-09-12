@@ -36,7 +36,7 @@ parts:
       - GOOS: linux
     build-snaps:
       - go/1.17/stable
-    # Override-build because we want to move the hashicorp librarry folder
+    # Override-build because we want to move the hashicorp library folder
     override-build: |
       cd $CRAFT_PART_SRC_WORK
       go mod download
