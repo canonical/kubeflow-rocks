@@ -2,7 +2,7 @@
 
 name: profile-controller
 base: ubuntu@22.04
-version: "v1.9.0"
+version: "1.9.0"
 summary: Controller for Kubeflow Profile objects
 description: Controller for Kubeflow Profile objects
 license: Apache-2.0
