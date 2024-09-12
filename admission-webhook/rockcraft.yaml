@@ -43,8 +43,7 @@ parts:
       - GOOS: linux
     override-build: |
       cd components/admission-webhook
-      go build -o webhook -a .
-      cp webhook $CRAFT_PART_INSTALL/webhook
+      go build -o $CRAFT_PART_INSTALL/webhook -a .
 
   non-root-user:
     plugin: nil
