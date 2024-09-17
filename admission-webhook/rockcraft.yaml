@@ -16,7 +16,7 @@ platforms:
 
 services:
   admission-webhook:
-    override: replace
+    override: merge
     command: "/webhook"
     startup: enabled
     user: ubuntu
