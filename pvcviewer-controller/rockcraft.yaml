@@ -18,7 +18,7 @@ services:
     summary: "pvcviewer-operator service"
     startup: enabled
     user: ubuntu
-    command: "/manager --leader-elect"
+    command: "/manager"
 
 parts:
   security-team-requirement:
