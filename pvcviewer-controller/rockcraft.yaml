@@ -8,9 +8,9 @@ description: |
 version: "1.9.0"
 license: Apache-2.0
 base: ubuntu@22.04
+run-user: _daemon_
 platforms:
   amd64:
-run-user: _daemon_
 
 services:
   pvcviewer-operator:
@@ -35,23 +35,19 @@ parts:
     source: https://github.com/kubeflow/kubeflow.git
     source-depth: 1
     source-tag: v1.9.0
+    source-subdir: components/pvcviewer-controller/    
     build-snaps:
       - go/1.22/stable
+    build-packages:
+      - apt
+      - bash
     build-environment:
       - CGO_ENABLED: 0
       - GOOS: linux
-    override-build: |
-      set -xe
-      cd $CRAFT_PART_SRC/components/pvcviewer-controller/
-
-      # build
-      go mod tidy
-      go mod download all
-      go build -a -mod=mod -o manager main.go
-
-      # install build artifacts
-      mkdir -p $CRAFT_PART_INSTALL/
-      cp manager $CRAFT_PART_INSTALL/
+    stage-packages:
+      - bash      
+    organize:
+      bin/pvcviewer-operator: "/manager"
       
   non-root-user:
     plugin: nil
