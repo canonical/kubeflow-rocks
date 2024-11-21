@@ -4,8 +4,7 @@ name: pvcviewer-controller
 summary: An image for PVC viewer controller
 description: |
   This image is used as part of the Kubeflow ecosystem. The controller allows users to
-  manage and view Persistent Volume Claims (PVCs) in the cluster. Built with Go 1.22.2
-  and uses a distroless base for minimal attack surface.
+  manage and view Persistent Volume Claims (PVCs) in the cluster.
 version: "1.9.0"
 license: Apache-2.0
 base: ubuntu@22.04
@@ -14,9 +13,9 @@ platforms:
 run-user: _daemon_
 
 services:
-  pvcviewer-controller:
+  pvcviewer-operator:
     override: replace
-    summary: "pvcviewer-controller service"
+    summary: "pvcviewer-operator service"
     startup: enabled
     user: ubuntu
     command: "/manager --leader-elect"
@@ -30,11 +29,13 @@ parts:
        dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) > \
        ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
        
-  pvcviewer-controller:
+  pvcviewer-operator:
     plugin: go
     source-type: git    
     source: https://github.com/kubeflow/kubeflow.git
-    source-depth: 1
+    source-depth: 1Built with Go 1.22.2
+  and uses a distroless base for minimal attack surface.
+version
     source-tag: v1.9.0
     build-snaps:
       - go/1.22/stable
@@ -56,7 +57,7 @@ parts:
       
   non-root-user:
     plugin: nil
-    after: [pvcviewer-controller]
+    after: [pvcviewer-operator]
     overlay-script: |
       # Create a user in the $CRAFT_OVERLAY chroot
       groupadd -R $CRAFT_OVERLAY -g 1001 ubuntu
