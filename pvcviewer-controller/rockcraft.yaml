@@ -34,8 +34,6 @@ parts:
     source-type: git    
     source: https://github.com/kubeflow/kubeflow.git
     source-depth: 1Built with Go 1.22.2
-  and uses a distroless base for minimal attack surface.
-version
     source-tag: v1.9.0
     build-snaps:
       - go/1.22/stable
