@@ -47,7 +47,9 @@ parts:
     stage-packages:
       - bash      
     organize:
-      bin/pvcviewer-operator: "/manager"
+      bin/pvc-viewer: "/manager"
+    prime:
+      - manager
       
   non-root-user:
     plugin: nil
