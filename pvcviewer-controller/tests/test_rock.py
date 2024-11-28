@@ -17,7 +17,6 @@ def test_rock():
 
     subprocess.run(
         [
-            "sudo",
             "docker",
             "run",
             "--rm",
