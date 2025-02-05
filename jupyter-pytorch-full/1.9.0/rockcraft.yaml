@@ -11,26 +11,28 @@ version: "1.9.0"
 license: Apache-2.0
 base: ubuntu@22.04
 run-user: _daemon_
+
+environment:
+   NB_USER: jovyan
+   NB_UID: 1001
+   NB_GID: 0
+   NB_PREFIX: /
+   HOME: /home/jovyan
+   HOME_TMP: /tmp_home/$NB_USER
+   S6_CMD_WAIT_FOR_SERVICES_MAXTIME: 300000
+   S6_BEHAVIOUR_IF_STAGE2_FAILS: 2
+   SHELL: /bin/bash
+   LANG: en_US.UTF-8
+   LANGUAGE: en_US.UTF-8
+   LC_ALL: en_US.UTF-8
+   PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+   PYTHONPATH: /opt/conda/lib/python3.11/site-packages/
+
 services:
   jupyter:
     override: replace
     summary: "jupyter-pytorch-full service"
     startup: enabled
-    environment:
-       NB_USER: jovyan
-       NB_UID: 1001
-       NB_GID: 0
-       NB_PREFIX: /
-       HOME: /home/jovyan
-       HOME_TMP: /tmp_home/$NB_USER
-       S6_CMD_WAIT_FOR_SERVICES_MAXTIME: 300000
-       S6_BEHAVIOUR_IF_STAGE2_FAILS: 2
-       SHELL: /bin/bash
-       LANG: en_US.UTF-8
-       LANGUAGE: en_US.UTF-8
-       LC_ALL: en_US.UTF-8
-       PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-       PYTHONPATH: /opt/conda/lib/python3.11/site-packages/
     command: ./jupyter lab --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url="/" --ServerApp.authenticate_prometheus="False"
     working-dir: /opt/conda/bin/
 platforms:
