@@ -18,7 +18,7 @@ environment:
    NB_GID: 0
    NB_PREFIX: /
    HOME: /home/jovyan
-   HOME_TMP: /tmp_home/$NB_USER
+   HOME_TMP: /tmp_home/jovyan
    S6_CMD_WAIT_FOR_SERVICES_MAXTIME: 300000
    S6_BEHAVIOUR_IF_STAGE2_FAILS: 2
    SHELL: /bin/bash
