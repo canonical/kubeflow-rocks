@@ -165,7 +165,7 @@ parts:
 
       # configure - jupyter
       "${CONDA_BIN}/jupyter" labextension disable --level=system "@jupyterlab/apputils-extension:announcements" 
-      "${CONDA_BIN}/jupyter"labextension lock --level=system "@jupyterlab/apputils-extension"
+      "${CONDA_BIN}/jupyter" labextension lock --level=system "@jupyterlab/apputils-extension"
 
       # Install the jupyter-pytorch requirements
       "${CONDA_BIN}/pip" install --quiet --no-cache-dir --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple \
