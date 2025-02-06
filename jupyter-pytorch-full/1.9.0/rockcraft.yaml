@@ -117,7 +117,7 @@ parts:
       - TORCHAUDIO_VERSION: "2.3.1"
       - TORCHVISION_VERSION: "0.18.1"
       - MLFLOW_VERSION: "2.1.1"
-      - MAMBA_ROOT_PREFIX: "/opt/conda"
+      - MAMBA_ROOT_PREFIX: "/opt/conda/bin"
     stage-packages:
       - python3-distutils
     override-build: |
