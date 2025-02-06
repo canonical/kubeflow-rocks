@@ -17,6 +17,7 @@ environment:
    NB_UID: 1001
    NB_GID: 0
    NB_PREFIX: /
+   USERS_GID: 100
    HOME: /home/jovyan
    HOME_TMP: /tmp_home/jovyan
    S6_CMD_WAIT_FOR_SERVICES_MAXTIME: 300000
@@ -244,11 +245,11 @@ parts:
       # Create a user in the $CRAFT_OVERLAY chroot
       useradd -R ${CRAFT_OVERLAY} \
       --shell /bin/bash \
-      --home ${HOME} \
-      --uid ${NB_UID} \
-      --gid ${NB_GID} \
-      --groups ${USERS_GID} \
-      ${NB_USER} \
+      --home /home/jovyan \
+      --uid 1001 \
+      --gid 0 \
+      --groups users \
+      jovyan
 
     override-prime: |
       craftctl default
@@ -256,10 +257,10 @@ parts:
       # fix permissions of '/run' folder for s6
       chmod 0775 run
 
-      chmod 2775 home/jovyan
-      chmod 2775 tmp_home/jovyan
+      chmod 2775 $CRAFT_PRIME/${HOME}
+      chmod 2775 $CRAFT_PRIME/${HOME_TMP}
 
-      chown -R 584792:users /home/jovyan
+      chown -R 584792:users $CRAFT_PRIME/${HOME}
       chown -R 584792:users bin
       chown -R 584792:users opt/conda
 
