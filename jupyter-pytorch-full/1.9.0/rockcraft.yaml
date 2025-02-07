@@ -204,7 +204,7 @@ parts:
         mlflow==${MLFLOW_VERSION}
 
       # Create some directories for staging files
-      mkdir -p "${CRAFT_PART_INSTALL}/opt" \
+      mkdir -p "${CRAFT_PART_INSTALL}/${CONDA_DIR}" \
       "${CRAFT_PART_INSTALL}/etc" \
       "${CRAFT_PART_INSTALL}/${HOME}" \
       "${CRAFT_PART_INSTALL}/${HOME_TMP}" \
