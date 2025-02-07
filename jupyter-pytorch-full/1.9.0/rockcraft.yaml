@@ -231,6 +231,8 @@ parts:
       - NB_USER: jovyan
       - NB_USER_ID: 1001      
       - NB_GID: 0
+      - HOME: "/home/jovyan"
+      - HOME_TMP: "/tmp_home/jovyan"      
     overlay-script: |
       # Create a user in the $CRAFT_OVERLAY chroot
       useradd -R ${CRAFT_OVERLAY} \
