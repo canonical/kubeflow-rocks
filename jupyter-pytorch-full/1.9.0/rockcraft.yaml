@@ -251,7 +251,7 @@ parts:
 
   s6-config:
     plugin: nil
-    after: [conda-jupyter]
+    after: [non-root-user]
     build-environment:
       - NB_USER: jovyan
       - NB_USER_ID: 1001      
