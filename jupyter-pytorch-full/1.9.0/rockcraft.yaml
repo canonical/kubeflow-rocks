@@ -272,9 +272,3 @@ parts:
       chown -R 584792:users ${CRAFT_PRIME}/bin
       chown -R 584792:users ${CRAFT_PRIME}/opt/conda
 
-
-  s6-scripts:
-    plugin: nil
-    after: [non-root-user]
-
-    override-build: |
