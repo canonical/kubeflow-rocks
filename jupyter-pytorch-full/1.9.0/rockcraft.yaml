@@ -208,9 +208,7 @@ parts:
 
       # s6 - copy scripts
       cp -r ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter/s6/ ${CRAFT_PART_INSTALL}/etc
-      chown -R ${NB_USER}:${NB_GID} ${CRAFT_PART_INSTALL}/etc/s6
-      chmod -R 755 ${CRAFT_PART_INSTALL}/etc/s6
-
+      
       # s6 - 01-copy-tmp-home
       # NOTE: the contents of $HOME_TMP are copied to $HOME at runtime
       #       this is a workaround because a PVC will be mounted at $HOME
@@ -256,13 +254,17 @@ parts:
     override-prime: |
       craftctl default
 
+      # s6 fix
+      chown -R jovyan:0 $CRAFT_PRIME/etc/s6
+      chmod -R 755 $CRAFT_PRIME/etc/s6
+
       # fix permissions of '/run' folder for s6
       chmod 0775 run
 
-      chmod 2775 $CRAFT_PRIME/${HOME}
-      chmod 2775 $CRAFT_PRIME/${HOME_TMP}
+      chmod 2775 $CRAFT_PRIME/home/jovyan
+      chmod 2775 $CRAFT_PRIME/tmp_home/jovyan
 
-      chown -R 584792:users $CRAFT_PRIME/${HOME}
-      chown -R 584792:users bin
-      chown -R 584792:users opt/conda
+      chown -R 584792:users $CRAFT_PRIME/home/jovyan
+      chown -R 584792:users $CRAFT_PRIME/bin
+      chown -R 584792:users $CRAFT_PRIME/opt/conda
 
