@@ -206,7 +206,7 @@ parts:
       "${CRAFT_PART_INSTALL}/${HOME_TMP}" \
 
       # s6 - copy scripts
-      cp -r s6/ ${CRAFT_PART_INSTALL}/etc
+      cp -r ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter/s6/ ${CRAFT_PART_INSTALL}/etc
       chown -R ${NB_USER}:${NB_GID} ${CRAFT_PART_INSTALL}/etc/s6
       chmod -R 755 ${CRAFT_PART_INSTALL}/etc/s6
 
