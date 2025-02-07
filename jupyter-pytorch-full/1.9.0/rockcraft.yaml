@@ -21,7 +21,6 @@ services:
     working-dir: /opt/conda/bin/
     environment:
        NB_USER: jovyan
-       NB_UID: 1001
        NB_GID: 0
        NB_PREFIX: /
        USERS_GID: 100
@@ -109,6 +108,8 @@ parts:
       - PYTHON_VERSION: "3.11.10"
       - HOME: "/home/jovyan"
       - HOME_TMP: /tmp_home/jovyan
+      - NB_USER: jovyan
+      - NB_GID: 0
       - CONDA_DIR: "/opt/conda"
       - CONDA_BIN: "/opt/conda/bin"
       - JUPYTERLAB_VERSION: "4.2.5"
