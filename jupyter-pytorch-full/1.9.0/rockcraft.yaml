@@ -223,31 +223,6 @@ parts:
       cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt/conda"
       cp -r "${HOME}" "${CRAFT_PART_INSTALL}/${HOME}"
 
-  s6-scripts:
-    plugin: nil
-    after: [conda-jupyter]
-    build-environment:
-      - NB_USER: jovyan
-      - NB_GID: 0
-    override-build: |
-      # s6 - config scripts
-      chown -R ${NB_USER}:${NB_GID} ${CRAFT_PART_INSTALL}/etc/s6
-      chmod -R 755 ${CRAFT_PART_INSTALL}/etc/s6
-
-      # s6 - 01-copy-tmp-home
-      # NOTE: the contents of $HOME_TMP are copied to $HOME at runtime
-      #       this is a workaround because a PVC will be mounted at $HOME
-      #       and the contents of $HOME will be hidden
-      cp -p -r -T ${CRAFT_PART_INSTALL}/${HOME} ${CRAFT_PART_INSTALL}/${HOME_TMP}
-      
-      # give group same access as user (needed for OpenShift)
-      chmod -R g=u ${CRAFT_PART_INSTALL}/${HOME_TMP}
-
-      # create the SYSTEM_CONFIG_PATH for jupyter, and make it owned by NB_USER
-      # this is needed for jupyter to write `--level=system` configs
-      mkdir -pv ${CRAFT_PART_INSTALL}/usr/local/etc/jupyter
-      chown -R ${NB_USER}:${NB_GID} ${CRAFT_PART_INSTALL}/usr/local/etc/jupyter
-
   # not-root user for this rock should be 'jovyan'
   non-root-user:
     plugin: nil
@@ -275,3 +250,28 @@ parts:
       chown -R 584792:users $CRAFT_PRIME/bin
       chown -R 584792:users $CRAFT_PRIME/opt/conda
 
+
+  s6-scripts:
+    plugin: nil
+    after: [non-root-user]
+    build-environment:
+      - NB_USER: jovyan
+      - NB_GID: 0
+    override-build: |
+      # s6 - config scripts
+      chown -R ${NB_USER}:${NB_GID} ${CRAFT_PART_INSTALL}/etc/s6
+      chmod -R 755 ${CRAFT_PART_INSTALL}/etc/s6
+
+      # s6 - 01-copy-tmp-home
+      # NOTE: the contents of $HOME_TMP are copied to $HOME at runtime
+      #       this is a workaround because a PVC will be mounted at $HOME
+      #       and the contents of $HOME will be hidden
+      cp -p -r -T ${CRAFT_PART_INSTALL}/${HOME} ${CRAFT_PART_INSTALL}/${HOME_TMP}
+      
+      # give group same access as user (needed for OpenShift)
+      chmod -R g=u ${CRAFT_PART_INSTALL}/${HOME_TMP}
+
+      # create the SYSTEM_CONFIG_PATH for jupyter, and make it owned by NB_USER
+      # this is needed for jupyter to write `--level=system` configs
+      mkdir -pv ${CRAFT_PART_INSTALL}/usr/local/etc/jupyter
+      chown -R ${NB_USER}:${NB_GID} ${CRAFT_PART_INSTALL}/usr/local/etc/jupyter
