@@ -265,7 +265,7 @@ parts:
       chown -R ${NB_USER_ID}:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
 
       # fix permissions of '/run' folder for s6
-      chmod 0775 run
+      chmod 0775 ${CRAFT_PRIME}/run
 
       chmod 2775 ${CRAFT_PRIME}/home/jovyan
       chmod 2775 ${CRAFT_PRIME}/tmp_home/jovyan
