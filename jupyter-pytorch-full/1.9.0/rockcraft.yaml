@@ -245,7 +245,7 @@ parts:
       craftctl default
 
       # s6 - config scripts
-      chown -R ${NB_USER_ID}:${NB_GID} ${CRAFT_PART_INSTALL}/etc/s6
+      chown -R ${NB_USER_ID}:${NB_GID} ${CRAFT_PRIME}/etc/s6
       chmod -R 755 ${CRAFT_PRIME}/etc/s6
 
       # s6 - 01-copy-tmp-home
@@ -261,7 +261,6 @@ parts:
       # this is needed for jupyter to write `--level=system` configs
       mkdir -pv ${CRAFT_PRIME}/usr/local/etc/jupyter
       chown -R ${NB_USER_ID}:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
-
 
       # fix permissions of '/run' folder for s6
       chmod 0775 run
