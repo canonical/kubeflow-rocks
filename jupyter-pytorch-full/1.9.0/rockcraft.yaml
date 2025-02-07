@@ -228,6 +228,7 @@ parts:
     plugin: nil
     after: [conda-jupyter]
     build-environment:
+      - NB_USER_ID: 1001    
       - NB_GID: 0
     overlay-script: |
       # Create a user in the $CRAFT_OVERLAY chroot
