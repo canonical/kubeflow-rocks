@@ -220,7 +220,7 @@ parts:
       rm -rf "${HOME}/.wget-hsts" "${HOME}/.cache"
 
       # Stage the conda directories
-      cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt/conda"
+      cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt"
       cp -r "${HOME}" "${CRAFT_PART_INSTALL}/${HOME}"
 
   # not-root user for this rock should be 'jovyan'
