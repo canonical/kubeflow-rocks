@@ -198,6 +198,9 @@ parts:
       "${CONDA_BIN}/pip" install --quiet --no-cache-dir \
         mlflow==${MLFLOW_VERSION}
 
+      # numpy re-install for pandas: https://github.com/Sinaptik-AI/pandas-ai/issues/1251
+      "${CONDA_BIN}/pip" install "numpy<2.0.0" --force-reinstall
+
       # Create some directories for staging files
       mkdir -p "${CRAFT_PART_INSTALL}/${CONDA_DIR}" \
       "${CRAFT_PART_INSTALL}/etc" \
