@@ -182,8 +182,8 @@ parts:
         dill==0.3.8 \
         ipympl==0.9.4 \
         matplotlib==3.8.4 \
-        numpy==1.24.4 \
         pandas==2.1.4 \
+        numpy==1.24.4 \
         scikit-image==0.22.0 \
         scikit-learn==1.3.2 \
         scipy==1.11.3 \
@@ -238,10 +238,6 @@ parts:
     override-prime: |
       craftctl default
       
-      # Patch matplotlib https://github.com/matplotlib/matplotlib/issues/18011/
-      mkdir ${CRAFT_PRIME}/home/jovyan/.config
-      chmod -R g+rwxs ${CRAFT_PRIME}/home/jovyan/.config
-
       chmod 2775 ${CRAFT_PRIME}/home/jovyan
       chmod 2775 ${CRAFT_PRIME}/tmp_home/jovyan
 
