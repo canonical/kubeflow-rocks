@@ -159,7 +159,7 @@ parts:
       "${CONDA_BIN}/conda" install -y -q \
         jupyterlab==${JUPYTERLAB_VERSION} \
         notebook==${JUPYTER_VERSION}
-	
+
       cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter/requirements.txt /tmp/jupyter-requirements.txt
       "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/jupyter-requirements.txt
       rm -f /tmp/requirements.txt
