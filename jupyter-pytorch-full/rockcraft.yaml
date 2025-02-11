@@ -115,7 +115,6 @@ parts:
       - PYTORCH_VERSION: "2.3.1"
       - TORCHAUDIO_VERSION: "2.3.1"
       - TORCHVISION_VERSION: "0.18.1"
-      - MLFLOW_VERSION: "2.1.1"
       - MAMBA_ROOT_PREFIX: "/opt/conda/bin"
     stage-packages:
       - python3-distutils
@@ -194,12 +193,8 @@ parts:
 
       "${CONDA_BIN}/mamba" clean -a -f -y
 
-      # Install mlflow so we can use this with mlflow https://github.com/canonical/data-science-stack/issues/47#issuecomment-2004136344
-      "${CONDA_BIN}/pip" install --quiet --no-cache-dir \
-        mlflow==${MLFLOW_VERSION}
-
       # numpy re-install for pandas: https://github.com/Sinaptik-AI/pandas-ai/issues/1251
-      "${CONDA_BIN}/pip" install "numpy<2.0.0" --force-reinstall
+      # "${CONDA_BIN}/pip" install "numpy<2.0.0" --force-reinstall
 
       # Create some directories for staging files
       mkdir -p "${CRAFT_PART_INSTALL}/${CONDA_DIR}" \
