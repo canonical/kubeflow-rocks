@@ -159,8 +159,8 @@ parts:
       "${CONDA_BIN}/conda" install -y -q \
         jupyterlab==${JUPYTERLAB_VERSION} \
         notebook==${JUPYTER_VERSION}
-      cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter/requirements.txt jupyter-requirements.txt
-      "${CONDA_BIN}/pip" install --no-cache-dir -r jupyter-requirements.txt
+      cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter/requirements.txt /tmp/jupyter-requirements.txt
+      "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/jupyter-requirements.txt
 
       # configure - jupyter
       "${CONDA_BIN}/jupyter" labextension disable --level=system "@jupyterlab/apputils-extension:announcements" 
@@ -186,13 +186,13 @@ parts:
         scipy==1.11.3 \
         seaborn==0.13.2 \
         xgboost==1.7.6
-      cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-pytorch-full/requirements.txt requirements.txt
-      "${CONDA_BIN}/pip" install --no-cache-dir -r requirements.txt
+      cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-pytorch-full/requirements.txt /tmp/requirements.txt
+      "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/requirements.txt
 
       "${CONDA_BIN}/mamba" clean -a -f -y
 
       # numpy re-install for pandas: https://github.com/Sinaptik-AI/pandas-ai/issues/1251
-      "${CONDA_BIN}/pip" install "numpy==1.24.4" --force-reinstall
+      "${CONDA_BIN}/mamba" install "numpy==1.24.4" --force-reinstall -y -q
  
       # Create some directories for staging files1.24.4 
       mkdir -p "${CRAFT_PART_INSTALL}/${CONDA_DIR}" \
