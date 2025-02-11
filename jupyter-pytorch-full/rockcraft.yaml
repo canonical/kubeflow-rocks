@@ -143,6 +143,9 @@ parts:
       echo "conda ${MINIFORGE_VERSION:0:-2}" >> "${CONDA_DIR}/conda-meta/pinned"
       echo "python ==${PYTHON_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned"
 
+      # numpy re-install for pandas: https://github.com/Sinaptik-AI/pandas-ai/issues/1251
+      "${CONDA_BIN}/conda" install "numpy==1.24.4" --force-reinstall -y -q
+
       # Install the correct versions of python, conda, pip
       "${CONDA_BIN}/conda" install -y -q \
                           python="${PYTHON_VERSION}" \
