@@ -171,8 +171,6 @@ parts:
         torch==${PYTORCH_VERSION} \
         torchvision==${TORCHVISION_VERSION} \
         torchaudio==${TORCHAUDIO_VERSION}
-      cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-pytorch/requirements.txt requirements.txt
-      "${CONDA_BIN}/pip" install --no-cache-dir -r requirements.txt
 
       # Install the jupyter-pytorch-full requirements
       "${CONDA_BIN}/mamba" install -y -q \
@@ -194,9 +192,9 @@ parts:
       "${CONDA_BIN}/mamba" clean -a -f -y
 
       # numpy re-install for pandas: https://github.com/Sinaptik-AI/pandas-ai/issues/1251
-      # "${CONDA_BIN}/pip" install "numpy<2.0.0" --force-reinstall
-
-      # Create some directories for staging files
+      "${CONDA_BIN}/pip" install "numpy==1.24.4" --force-reinstall
+ 
+      # Create some directories for staging files1.24.4 
       mkdir -p "${CRAFT_PART_INSTALL}/${CONDA_DIR}" \
       "${CRAFT_PART_INSTALL}/etc" \
       "${CRAFT_PART_INSTALL}/${HOME}" \
