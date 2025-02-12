@@ -115,7 +115,7 @@ parts:
       - PYTORCH_VERSION: "2.3.1"
       - TORCHAUDIO_VERSION: "2.3.1"
       - TORCHVISION_VERSION: "0.18.1"
-      - MAMBA_ROOT_PREFIX: "/opt/conda/bin"
+      - MAMBA_ROOT_PREFIX: "/opt/conda"
     stage-packages:
       - python3-distutils
     override-build: |
@@ -148,9 +148,6 @@ parts:
                           python="${PYTHON_VERSION}" \
                           conda="${MINIFORGE_VERSION:0:-2}" \
                           pip="${PIP_VERSION}"
-
-      # numpy re-install for pandas: https://github.com/Sinaptik-AI/pandas-ai/issues/1251
-      "${CONDA_BIN}/conda" install "numpy==1.24.4" --force-reinstall -y -q
 
       # Clean up
       "${CONDA_BIN}/conda" update -y -q --all
@@ -192,9 +189,6 @@ parts:
         seaborn==0.13.2 \
         xgboost==1.7.6
 
-      # numpy re-install for pandas: https://github.com/Sinaptik-AI/pandas-ai/issues/1251
-      "${CONDA_BIN}/mamba" install "numpy==1.24.4" --force-reinstall -y -q
-
       "${CONDA_BIN}/mamba" clean -a -f -y
       
       cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-pytorch-full/requirements.txt /tmp/requirements.txt
@@ -221,11 +215,6 @@ parts:
       cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt"
       cp -r "${HOME}" "${CRAFT_PART_INSTALL}/home"
       
-    override-prime: |
-      craftctl default
-      # numpy re-install for pandas: https://github.com/Sinaptik-AI/pandas-ai/issues/1251
-      "${CRAFT_PRIME}/${CONDA_BIN}/conda" install "numpy==1.24.4" --force-reinstall -y -q
-
   # not-root user for this rock should be 'jovyan'
   non-root-user:
     plugin: nil
