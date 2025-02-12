@@ -174,10 +174,10 @@ parts:
       "${CONDA_BIN}/mamba" install -y -q \
         h5py==3.11.0
       "${CONDA_BIN}/mamba" clean -a -f -y
-	
+
       "${CONDA_BIN}/pip" install --quiet --no-cache-dir \
         tensorflow==${TENSORFLOW_VERSION}
-	
+
       cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter-tensorflow/requirements.txt /tmp/requirements.txt
       "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/jupyter-requirements.txt
       rm -f /tmp/requirements.txt      
