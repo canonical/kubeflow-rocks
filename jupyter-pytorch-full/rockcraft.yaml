@@ -116,6 +116,7 @@ parts:
       - TORCHAUDIO_VERSION: "2.3.1"
       - TORCHVISION_VERSION: "0.18.1"
       - MAMBA_ROOT_PREFIX: "/opt/conda"
+      - MLFLOW_VERSION: "2.1.1"
     stage-packages:
       - python3-distutils
     override-build: |
@@ -194,7 +195,11 @@ parts:
       cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-pytorch-full/requirements.txt /tmp/requirements.txt
       "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/requirements.txt
       rm -f /tmp/requirements.txt
- 
+
+      # Install mlflow so we can use this with mlflow https://github.com/canonical/data-science-stack/issues/47#issuecomment-2004136344
+      "${CONDA_BIN}/pip" install --quiet --no-cache-dir \
+        mlflow==${MLFLOW_VERSION}
+
       # Create some directories for staging files1.24.4 
       mkdir -p "${CRAFT_PART_INSTALL}/${CONDA_DIR}" \
       "${CRAFT_PART_INSTALL}/etc" \
