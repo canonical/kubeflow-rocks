@@ -26,15 +26,15 @@ def main():
     LOCAL_ROCK_IMAGE = f"{rock_image}:{rock_version}"
     
     print(f"Running {LOCAL_ROCK_IMAGE}")
-    container_id = subprocess.run(["sudo", "docker", "run", "-d", "-p", "8888:8888", LOCAL_ROCK_IMAGE], stdout=subprocess.PIPE).stdout.decode('utf-8')
+    container_id = subprocess.run(["docker", "run", "-d", "-p", "8888:8888", LOCAL_ROCK_IMAGE], stdout=subprocess.PIPE).stdout.decode('utf-8')
     container_id = container_id[0:12]
 
     # Try to reach the notebook server
     output = check_notebook_server_up("http://0.0.0.0:8888/lab")
 
     # cleanup
-    subprocess.run(["sudo", "docker", "stop", f"{container_id}"])
-    subprocess.run(["sudo", "docker", "rm", f"{container_id}"])
+    subprocess.run(["docker", "stop", f"{container_id}"])
+    subprocess.run(["docker", "rm", f"{container_id}"])
 
     # test output
     assert "JupyterLab" in output
