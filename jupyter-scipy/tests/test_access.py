@@ -26,11 +26,12 @@ def main():
     LOCAL_ROCK_IMAGE = f"{rock_image}:{rock_version}"
     
     print(f"Running {LOCAL_ROCK_IMAGE}")
-    container_id = subprocess.run(["docker", "run", "-d", "-p", "8888:8888", LOCAL_ROCK_IMAGE], stdout=subprocess.PIPE).stdout.decode('utf-8')
+    NB_PREFIX_DIR="test"
+    container_id = subprocess.run(["docker", "run", "-d", "-p", "8888:8888", "-e", f"NB_PREFIX={NB_PREFIX_DIR}", LOCAL_ROCK_IMAGE], stdout=subprocess.PIPE).stdout.decode('utf-8')
     container_id = container_id[0:12]
 
     # Try to reach the notebook server
-    output = check_notebook_server_up("http://0.0.0.0:8888/lab")
+    output = check_notebook_server_up(f"http://0.0.0.0:8888/{NB_PREFIX_DIR}/lab")
 
     # cleanup
     subprocess.run(["docker", "stop", f"{container_id}"])
