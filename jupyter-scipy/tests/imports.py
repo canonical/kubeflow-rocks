@@ -1,13 +1,17 @@
 #
 # This python script tests loading of required modules
 #
-# jupyter packages
+
+# Jupyter packages
 import jupyterlab
 import notebook
 import ipykernel
 
-# scipy packages
+# SciPy ecosystem packages
+import altair
 import bokeh
+import bottleneck
+import brotli
 import cloudpickle
 import dask
 import dill
@@ -18,19 +22,27 @@ import jupyterlab_git
 import matplotlib
 import numba
 import numexpr
+import openpyxl
 import pandas
 import patsy
-import google
 import scipy
 import seaborn
+import sqlalchemy
 import statsmodels
 import sympy
-import tables
+import tables  # pytables
 import vincent
 import xlrd
 
-# mlflow package
+# Machine Learning & Data Science
+import sklearn  # scikit-learn
+
+# MLflow package
 import mlflow
 
-# this string is expected by test script
+# OpenBLAS (Note: OpenBLAS itself is a C library, but NumPy uses it)
+import numpy as np
+import scipy.linalg  # Ensures OpenBLAS is properly linked
+
+# Test script success output
 print("PASSED")
