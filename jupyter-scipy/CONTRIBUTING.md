@@ -10,7 +10,13 @@ This Rock is built based on three upstream Dockerfiles from the Kubeflow project
 If you are updating this Rock, ensure you check the above Dockerfiles from top to bottom to track any modifications.
 
 ## Architecture and Scope
-The upstream Dockerfiles use `s6` to build images for different architectures, including ARM support. However, for this Rock, we are skipping `s6` for now.
+The upstream Dockerfiles use `s6` to build images for different architectures, including ARM support. However, for this Rock, we are skipping `s6` because we are not building for ARM.
+
+Additionally, we are skipping the following parts from the upstream Dockerfiles:
+- [`base/Dockerfile#L73`](https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.0/components/example-notebook-servers/base/Dockerfile#L73)
+- [`base/Dockerfile#L129`](https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.0/components/example-notebook-servers/base/Dockerfile#L129)
+
+We are also omitting environment variables related to `s6`.
 
 ## Handling Environment Variables
 - Environment variables required for the build process are specified in the `parts` section of `rockcraft.yaml`.
@@ -52,6 +58,8 @@ command: bash -c './jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser
 ## Preinstalling MLflow Library
 MLflow must be preinstalled in the Rock. The latest version can be checked [here](https://github.com/canonical/mlflow-operator/blob/main/metadata.yaml#L18).
 
+The upstream Docker image does **not** install MLflow by default. This is required for integration purposes within the Charmed Kubeflow ecosystem.
+
 ## Running the Rock Locally
 To build the Rock locally, use:
 ```sh
@@ -65,5 +73,3 @@ docker run -p 8888:8888 jupyter-scipy:1.10.0-rc.0 exec /opt/conda/bin/jupyter la
 ```
 
 Now you should be able to access the notebook at http://localhost:8888/
-
-

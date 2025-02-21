@@ -28,8 +28,8 @@ services:
       NB_UID: 1000
       NB_GID: 0
       USERS_GID: 100
+      HOME: "/home/jovyan"
       # The following environment variables need to be specified in the Pod's environment, and not hardcoded.
-      #HOME: ""
       #NB_PREFIX: ""
       HOME_TMP: /tmp_home/jovyan
       SHELL: /bin/bash
@@ -39,8 +39,8 @@ services:
       PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       PYTHONPATH: /opt/conda/lib/python3.11/site-packages/
     # Command source https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.0/components/example-notebook-servers/jupyter/s6/services.d/jupyterlab/run
-    command: bash -c './jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser --allow-root --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.allow_remote_access=True --ServerApp.base_url=${NB_PREFIX} --ServerApp.authenticate_prometheus=False'
-    working-dir: /opt/conda/bin/
+    command: bash -c '/opt/conda/bin/jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser --allow-root --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.allow_remote_access=True --ServerApp.base_url=${NB_PREFIX} --ServerApp.authenticate_prometheus=False'
+    working-dir: /home/jovyan/
 platforms:
   amd64:
 
