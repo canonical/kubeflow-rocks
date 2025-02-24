@@ -25,10 +25,10 @@ def main():
     container_id = container_id[0:12]
 
     # to ensure container is started
-    time.sleep(5)
+    time.sleep(10)
 
     # retrieve notebook server URL
-    output = subprocess.run(["curl", "http://127.0.0.1:8888/lab"], stdout=subprocess.PIPE).stdout.decode('utf-8')
+    output = subprocess.run(["curl", "http://0.0.0.0:8888/lab"], stdout=subprocess.PIPE).stdout.decode('utf-8')
     # cleanup
     subprocess.run(["docker", "stop", f"{container_id}"])
     subprocess.run(["docker", "rm", f"{container_id}"])
