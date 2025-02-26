@@ -7,7 +7,7 @@ description: |
 
   Both PyTorch and Jupyter are installed in Conda environment, which is
   automatically activated.
-version: "1.9.0"
+version: "v1.10.0-rc.1"
 license: Apache-2.0
 base: ubuntu@22.04
 run-user: _daemon_
@@ -94,7 +94,7 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.9-branch # upstream branch
+    source-tag: v1.10.0-rc.1
     build-packages:
       - lsb-release
       - wget
