@@ -112,6 +112,7 @@ parts:
       - CODESERVER_VERSION: "4.96.4"
       - CODESERVER_PYTHON_VERSION: "2025.0.0"
       - CODESERVER_JUPYTER_VERSION: "2024.11.0"
+      - CODESERVER_BIN: "/usr/bin/code-server"
       - IPYKERNEL_VERSION: "6.29.5"
       - MINIFORGE_ARCH: "x86_64"      
       - MINIFORGE_VERSION: "24.11.3-0"
@@ -128,6 +129,8 @@ parts:
       curl -fsSL "https://github.com/coder/code-server/releases/download/v${CODESERVER_VERSION}/code-server_${CODESERVER_VERSION}_amd64.deb" -o /tmp/code-server.deb
       dpkg -i /tmp/code-server.deb
       rm -f /tmp/code-server.deb
+
+      cp /usr/bin/code-server ${CRAFT_PART_INSTALL}/usr/bin/code-server
 
       # Download the miniforge installer
       wget -qO miniforge.sh \
@@ -177,9 +180,9 @@ parts:
 
 
       # install - codeserver extensions
-      code-server --install-extension "ms-python.python@${CODESERVER_PYTHON_VERSION}" --force \
-       && code-server --install-extension "ms-toolsai.jupyter@${CODESERVER_JUPYTER_VERSION}" --force \
-       && code-server --list-extensions --show-versions
+      code-server --install-extension "ms-python.python@${CODESERVER_PYTHON_VERSION}" --force 
+      code-server --install-extension "ms-toolsai.jupyter@${CODESERVER_JUPYTER_VERSION}" --force 
+      code-server --list-extensions --show-versions
 
 
       # Create some directories for staging files
