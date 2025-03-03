@@ -218,6 +218,8 @@ parts:
     build-environment:
       - NB_USER_ID: 1001    
       - NB_GID: 0
+      - NB_USER: jovyan      
+      - XDG_RUNTIME_DIR: /tmp/runtime-${NB_USER}      
     overlay-script: |
       # Create a user in the $CRAFT_OVERLAY chroot
       useradd -R ${CRAFT_OVERLAY} \
