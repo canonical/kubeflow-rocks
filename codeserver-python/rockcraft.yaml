@@ -184,6 +184,7 @@ parts:
       cp -r ${CRAFT_PART_SRC}/components/example-notebook-servers/codeserver-python/home ${CRAFT_PART_INSTALL}/home
 
       # Stage directories
+      cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt"      
       cp -r "${HOME}" "${CRAFT_PART_INSTALL}/home"
       
   # not-root user for this rock should be 'jovyan'
