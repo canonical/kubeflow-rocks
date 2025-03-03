@@ -1,10 +1,10 @@
-# Source https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.0/components/tensorboard-controller/Dockerfile
+# Source https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/tensorboard-controller/Dockerfile
 name: tensorboard-controller
 summary: An image for tensorboard controller
 description: |
   This image is used as part of the Charmed Kubeflow product. The controller needs 
   for providing the measurements and visualizations needed during the machine learning workflow.
-version: "1.10.0-rc.0"
+version: "1.10.0-rc.1"
 license: Apache-2.0
 base: ubuntu@22.04
 services:
@@ -30,7 +30,7 @@ parts:
     plugin: go
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.10.0-rc.0
+    source-tag: v1.10.0-rc.1
     source-subdir: components/tensorboard-controller
     build-snaps:
       - go/1.21/stable
