@@ -108,6 +108,7 @@ parts:
       - NB_USER: jovyan
       - NB_GID: 0
       - CONDA_DIR: /opt/conda
+      - CONDA_BIN: "/opt/conda/bin"      
       - CODESERVER_VERSION: "4.96.4"
       - CODESERVER_PYTHON_VERSION: "2025.0.0"
       - CODESERVER_JUPYTER_VERSION: "2024.11.0"
