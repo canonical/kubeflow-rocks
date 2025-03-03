@@ -181,6 +181,23 @@ parts:
        && code-server --install-extension "ms-toolsai.jupyter@${CODESERVER_JUPYTER_VERSION}" --force \
        && code-server --list-extensions --show-versions
 
+
+      # Create some directories for staging files
+      mkdir -p "${CRAFT_PART_INSTALL}/${CONDA_DIR}" \
+      "${CRAFT_PART_INSTALL}/etc" \
+      "${CRAFT_PART_INSTALL}/${HOME}" \
+      "${CRAFT_PART_INSTALL}/${HOME_TMP}" \
+
+      # Write some config files for activating conda in user sessions
+      chmod 2775 ${CRAFT_PART_INSTALL}/${CONDA_DIR}
+      echo ". /opt/conda/etc/profile.d/conda.sh" >> "${HOME}/.bashrc"
+      echo ". /opt/conda/etc/profile.d/conda.sh" >> "${CRAFT_PART_INSTALL}/etc/profile"
+      echo "conda activate base" >> "${HOME}/.bashrc"
+            echo "conda activate base" >> "${CRAFT_PART_INSTALL}/etc/profile"
+
+      # Do some cleanup
+      rm -rf "${HOME}/.wget-hsts" "${HOME}/.cache"
+
       cp -r ${CRAFT_PART_SRC}/components/example-notebook-servers/codeserver-python/home ${CRAFT_PART_INSTALL}/home
 
       # Stage directories
@@ -207,6 +224,7 @@ parts:
     override-prime: |
       craftctl default
 
+      chmod 2775 ${CRAFT_PRIME}/opt/conda
       chmod 2775 ${CRAFT_PRIME}/home/jovyan
       chmod 2775 ${CRAFT_PRIME}/tmp_home/jovyan
 
