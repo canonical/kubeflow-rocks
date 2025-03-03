@@ -207,7 +207,6 @@ parts:
     override-prime: |
       craftctl default
 
-      chmod 2775 ${CRAFT_PRIME}/opt/conda
       chmod 2775 ${CRAFT_PRIME}/home/jovyan
       chmod 2775 ${CRAFT_PRIME}/tmp_home/jovyan
 
