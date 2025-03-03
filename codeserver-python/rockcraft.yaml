@@ -20,7 +20,7 @@ services:
     override: replace
     summary: "codeserver-jupyter service"
     startup: enabled
-    command: code-server --bind-addr 0.0.0.0:8888 --disable-telemetry --disable-update-check --disable-workspace-trust --disable-getting-started-override --auth none --trusted-origins "*" "${HOME}"
+    command: /lib/code-server/bin/code-server --bind-addr 0.0.0.0:8888 --disable-telemetry --disable-update-check --disable-workspace-trust --disable-getting-started-override --auth none --trusted-origins "*" "${HOME}"
     working-dir: /home/jovyan
     user: jovyan
     environment:
@@ -207,7 +207,6 @@ parts:
       mkdir -p ${CRAFT_PART_INSTALL}/${XDG_RUNTIME_DIR}
       mkdir -p ${CRAFT_PART_INSTALL}/usr/bin/
       cp -r /lib/code-server-${CODESERVER_VERSION} ${CRAFT_PART_INSTALL}/lib/code-server
-      ln -s /lib/code-server-${CODESERVER_VERSION}/bin/code-server ${CRAFT_PART_INSTALL}/usr/bin/code-server
       cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt"      
       cp -r "${HOME}" "${CRAFT_PART_INSTALL}/home"
       
