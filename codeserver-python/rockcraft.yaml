@@ -14,6 +14,7 @@ description: |
 version: "v1.10.0-rc.1"
 license: Apache-2.0
 base: ubuntu@22.04
+run-user: _daemon_
 
 services:
   codeserver-jupyter:
@@ -236,6 +237,7 @@ parts:
       chmod 2775 ${CRAFT_PRIME}/home/jovyan
       chmod 2775 ${CRAFT_PRIME}/tmp_home/jovyan
 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/jovyan
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/jovyan
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
