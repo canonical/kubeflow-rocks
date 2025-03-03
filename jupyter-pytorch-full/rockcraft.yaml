@@ -1,3 +1,7 @@
+# Based on the following Dockerfiles:
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/base/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/jupyter/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/jupyter-tensorflow-full/cpu.Dockerfile
 name: jupyter-pytorch-full
 summary: An image for using Jupyter & PyTorch on CPUs
 description: |
@@ -10,7 +14,6 @@ description: |
 version: "v1.10.0-rc.1"
 license: Apache-2.0
 base: ubuntu@22.04
-run-user: _daemon_
 
 services:
   jupyter:
@@ -19,6 +22,7 @@ services:
     startup: enabled
     command: ./jupyter lab --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.allow_remote_access=True --ServerApp.base_url="/" --ServerApp.authenticate_prometheus="False"
     working-dir: /opt/conda/bin/
+    user: jovyan
     environment:
        NB_USER: jovyan
        NB_GID: 0
