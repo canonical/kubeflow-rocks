@@ -34,7 +34,7 @@ services:
        LANG: en_US.UTF-8
        LANGUAGE: en_US.UTF-8
        LC_ALL: en_US.UTF-8
-       PATH: /opt/conda/bin:/lib/code-server/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+       PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
        PYTHONPATH: /opt/conda/lib/python3.11/site-packages/    
 platforms:
   amd64:
@@ -130,6 +130,9 @@ parts:
       mv /lib/code-server-${CODESERVER_VERSION}-linux-amd64 /lib/code-server-${CODESERVER_VERSION}
       ln -s /lib/code-server-${CODESERVER_VERSION}/bin/code-server /bin/code-server
 
+      cp -rp /usr/local/cuda-${CUDA_VERSION} ${CRAFT_PART_INSTALL}/usr/local
+      ln -sf /usr/local/cuda-${CUDA_VERSION} ${CRAFT_PART_INSTALL}/usr/local/cuda
+
 
       # Download the miniforge installer
       wget -qO miniforge.sh \
@@ -203,7 +206,9 @@ parts:
       cp -r ${CRAFT_PART_SRC}/components/example-notebook-servers/codeserver-python/home ${CRAFT_PART_INSTALL}/home
 
       # Stage directories
-      cp -r /lib/code-server-${CODESERVER_VERSION} ${CRAFT_PART_INSTALL}/lib/code-server-${CODESERVER_VERSION}
+      mkdir -p $CRAFT_PART_INSTALL/usr/bin/
+      cp -r /lib/code-server-${CODESERVER_VERSION} ${CRAFT_PART_INSTALL}/lib/code-server
+      ln -s /lib/code-server-${CODESERVER_VERSION}/bin/code-server ${CRAFT_PART_INSTALL}/usr/bin/code-server
       cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt"      
       cp -r "${HOME}" "${CRAFT_PART_INSTALL}/home"
       
