@@ -21,7 +21,7 @@ services:
     summary: "codeserver-jupyter service"
     startup: enabled
     command: code-server --bind-addr 0.0.0.0:8888 --disable-telemetry --disable-update-check --disable-workspace-trust --disable-getting-started-override --auth none --trusted-origins "*" "${HOME}"
-    working-dir: /opt/conda/bin/
+    working-dir: /home/jovyan
     user: jovyan
     environment:
        NB_USER: jovyan
@@ -35,7 +35,8 @@ services:
        LANGUAGE: en_US.UTF-8
        LC_ALL: en_US.UTF-8
        PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-       PYTHONPATH: /opt/conda/lib/python3.11/site-packages/    
+       PYTHONPATH: /opt/conda/lib/python3.11/site-packages/
+       XDG_RUNTIME_DIR: /tmp/runtime-${NB_USER}
 platforms:
   amd64:
 
@@ -119,6 +120,7 @@ parts:
       - PIP_VERSION: "24.3.1"
       - PYTHON_VERSION: "3.11.11"
       - PATH: "${CONDA_DIR}/bin:${PATH}"
+      - XDG_RUNTIME_DIR: /tmp/runtime-${NB_USER}
     stage-packages:
       - python3-distutils
     override-build: |
@@ -129,10 +131,6 @@ parts:
       curl -fL https://github.com/coder/code-server/releases/download/v${CODESERVER_VERSION}/code-server-${CODESERVER_VERSION}-linux-amd64.tar.gz | tar -C /lib -xz
       mv /lib/code-server-${CODESERVER_VERSION}-linux-amd64 /lib/code-server-${CODESERVER_VERSION}
       ln -s /lib/code-server-${CODESERVER_VERSION}/bin/code-server /bin/code-server
-
-      cp -rp /usr/local/cuda-${CUDA_VERSION} ${CRAFT_PART_INSTALL}/usr/local
-      ln -sf /usr/local/cuda-${CUDA_VERSION} ${CRAFT_PART_INSTALL}/usr/local/cuda
-
 
       # Download the miniforge installer
       wget -qO miniforge.sh \
@@ -206,7 +204,8 @@ parts:
       cp -r ${CRAFT_PART_SRC}/components/example-notebook-servers/codeserver-python/home ${CRAFT_PART_INSTALL}/home
 
       # Stage directories
-      mkdir -p $CRAFT_PART_INSTALL/usr/bin/
+      mkdir -p ${CRAFT_PART_INSTALL}/${XDG_RUNTIME_DIR}
+      mkdir -p ${CRAFT_PART_INSTALL}/usr/bin/
       cp -r /lib/code-server-${CODESERVER_VERSION} ${CRAFT_PART_INSTALL}/lib/code-server
       ln -s /lib/code-server-${CODESERVER_VERSION}/bin/code-server ${CRAFT_PART_INSTALL}/usr/bin/code-server
       cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt"      
@@ -242,3 +241,5 @@ parts:
 
       mkdir -pv ${CRAFT_PRIME}/usr/local/etc/jupyter
       chown -R ${NB_USER_ID}:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
+
+      chmod 700 ${CRAFT_PRIME}/${XDG_RUNTIME_DIR}
