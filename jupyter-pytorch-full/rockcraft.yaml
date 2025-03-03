@@ -73,7 +73,7 @@ parts:
   kubectl:
     plugin: nil
     stage-snaps:
-      - kubectl/1.29/stable
+      - kubectl/1.31/stable
     organize:
       kubectl: bin/kubectl
     stage:
