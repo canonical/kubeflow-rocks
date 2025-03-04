@@ -14,7 +14,6 @@ description: |
 version: "v1.10.0-rc.1"
 license: Apache-2.0
 base: ubuntu@22.04
-run-user: _daemon_
 
 services:
   codeserver-jupyter:
@@ -191,6 +190,9 @@ parts:
       "${CRAFT_PART_INSTALL}/etc" \
       "${CRAFT_PART_INSTALL}/${HOME}" \
       "${CRAFT_PART_INSTALL}/${HOME_TMP}" \
+      ${CRAFT_PART_INSTALL}/lib \
+      "${CRAFT_PART_INSTALL}/usr/bin" \
+      ${CRAFT_PART_INSTALL}/${XDG_RUNTIME_DIR}
 
       # Write some config files for activating conda in user sessions
       chmod 2775 ${CRAFT_PART_INSTALL}/${CONDA_DIR}
@@ -202,12 +204,11 @@ parts:
       # Do some cleanup
       rm -rf "${HOME}/.wget-hsts" "${HOME}/.cache"
 
-      cp -r ${CRAFT_PART_SRC}/components/example-notebook-servers/codeserver-python/home ${CRAFT_PART_INSTALL}/home
+      cp -r ${CRAFT_PART_SRC}/components/example-notebook-servers/codeserver-python/home ${CRAFT_PART_INSTALL}
 
       # Stage directories
-      mkdir -p ${CRAFT_PART_INSTALL}/${XDG_RUNTIME_DIR}
-      mkdir -p ${CRAFT_PART_INSTALL}/usr/bin/
       cp -r /lib/code-server-${CODESERVER_VERSION} ${CRAFT_PART_INSTALL}/lib/code-server
+      ln -sf ${CRAFT_PART_INSTALL}/lib/code-server/bin/code-server ${CRAFT_PART_INSTALL}/usr/bin/code-server
       cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt"      
       cp -r "${HOME}" "${CRAFT_PART_INSTALL}/home"
       
@@ -237,7 +238,6 @@ parts:
       chmod 2775 ${CRAFT_PRIME}/home/jovyan
       chmod 2775 ${CRAFT_PRIME}/tmp_home/jovyan
 
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/jovyan
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/jovyan
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
