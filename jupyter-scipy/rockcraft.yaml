@@ -132,7 +132,7 @@ parts:
       - JUPYTERLAB_VERSION: "4.3.5"
       - JUPYTER_VERSION: "7.3.2"
       - MINIFORGE_ARCH: "x86_64"
-      - MINIFORGE_VERSION: "24.11.3-0
+      - MINIFORGE_VERSION: "24.11.3-0"
       - PIP_VERSION: "24.3.1"
       - PYTHON_VERSION: "3.11.11"
       - HOME: "/home/jovyan"
