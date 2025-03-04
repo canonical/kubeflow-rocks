@@ -238,9 +238,9 @@ parts:
       chmod 2775 ${CRAFT_PRIME}/home/jovyan
       chmod 2775 ${CRAFT_PRIME}/tmp_home/jovyan
 
-      chown -R 584792:users ${CRAFT_PRIME}/home/jovyan
-      chown -R 584792:users ${CRAFT_PRIME}/bin
-      chown -R 584792:users ${CRAFT_PRIME}/opt/conda
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/jovyan
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
       chmod -R g+rwx ${CRAFT_PRIME}/home/jovyan 
 
       mkdir -pv ${CRAFT_PRIME}/usr/local/etc/jupyter
