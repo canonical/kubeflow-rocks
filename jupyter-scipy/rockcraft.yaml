@@ -1,7 +1,7 @@
 # Based on:
-# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.0/components/example-notebook-servers/base/Dockerfile
-# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.0/components/example-notebook-servers/jupyter/Dockerfile
-# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.0/components/example-notebook-servers/jupyter-scipy/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/base/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/jupyter/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/jupyter-scipy/Dockerfile
 name: jupyter-scipy
 summary: An image for using Jupyter SciPy
 description: |
@@ -11,7 +11,7 @@ description: |
 
   Both SciPy and Jupyter are installed in Conda environment, which is
   automatically activated.
-version: 1.10.0-rc.0
+version: 1.10.0-rc.1
 license: Apache-2.0
 base: ubuntu@22.04
 run-user: _daemon_
@@ -38,7 +38,7 @@ services:
       LC_ALL: en_US.UTF-8
       PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       PYTHONPATH: /opt/conda/lib/python3.11/site-packages/
-    # Command source https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.0/components/example-notebook-servers/jupyter/s6/services.d/jupyterlab/run
+    # Command source https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/jupyter/s6/services.d/jupyterlab/run
     command: bash -c '/opt/conda/bin/jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser --allow-root --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.allow_remote_access=True --ServerApp.base_url=${NB_PREFIX} --ServerApp.authenticate_prometheus=False'
     working-dir: /home/jovyan/
 platforms:
@@ -83,7 +83,7 @@ parts:
   kubectl:
     plugin: nil
     stage-snaps:
-      - kubectl/1.29/stable
+      - kubectl/1.31/stable
     organize:
       kubectl: bin/kubectl
     stage:
@@ -124,17 +124,17 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.10.0-rc.0
+    source-tag: v1.10.0-rc.1
     build-packages:
       - lsb-release
       - wget
     build-environment:
-      - JUPYTERLAB_VERSION: "4.2.5"
-      - JUPYTER_VERSION: "7.2.2"
+      - JUPYTERLAB_VERSION: "4.3.5"
+      - JUPYTER_VERSION: "7.3.2"
       - MINIFORGE_ARCH: "x86_64"
-      - MINIFORGE_VERSION: "24.7.1-2"
-      - PIP_VERSION: "24.2"
-      - PYTHON_VERSION: "3.11.10"
+      - MINIFORGE_VERSION: "24.11.3-0
+      - PIP_VERSION: "24.3.1"
+      - PYTHON_VERSION: "3.11.11"
       - HOME: "/home/jovyan"
       - HOME_TMP: /tmp_home/jovyan
       - NB_USER: jovyan
@@ -196,32 +196,34 @@ parts:
       # Install the jupyter-scipy requirements
       "${CONDA_BIN}/mamba" install -y -q \
         altair \
-        beautifulsoup4==4.12.3 \
-        bokeh==3.3.4 \
+        beautifulsoup4==4.13.3 \
+        bokeh==3.6.3 \
         bottleneck \
         brotli \
         cloudpickle \
-        dask==2024.5.1 \
+        dask==2024.12.1 \
         dill \
         h5py \
         ipympl \
-        matplotlib==3.8.4 \
+        matplotlib==3.10.0 \
         numba \
         numexpr \
-        openblas==0.3.25 \
+        numpy==1.26.4 \
+        openblas==0.3.28 \
         openpyxl \
-        pandas==2.1.4 \
+        pandas==2.2.3 \
         patsy \
         protobuf \
-        pytables==3.9.2 \
-        scikit-image==0.22.0 \
-        scikit-learn==1.3.2 \
-        scipy==1.11.3 \
+        pytables==3.10.2 \
+        scikit-image==0.25.1 \
+        scikit-learn==1.6.1 \
+        scipy==1.15.1 \
         seaborn==0.13.2 \
-        sqlalchemy==2.0.30 \
+        sqlalchemy==2.0.38 \
         statsmodels \
         sympy \
         vincent \
+        xgboost==2.1.4 \
         xlrd \
 
       "${CONDA_BIN}/mamba" clean -a -f -y
