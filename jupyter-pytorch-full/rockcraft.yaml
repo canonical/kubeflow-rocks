@@ -249,6 +249,7 @@ parts:
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/jovyan
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
+      chmod -R g+rwx ${CRAFT_PRIME}/home/jovyan 
 
       mkdir -pv ${CRAFT_PRIME}/usr/local/etc/jupyter
       chown -R ${NB_USER_ID}:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
