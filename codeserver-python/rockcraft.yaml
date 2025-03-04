@@ -20,7 +20,7 @@ services:
     override: replace
     summary: "codeserver-jupyter service"
     startup: enabled
-    command: /lib/code-server/bin/code-server --bind-addr 0.0.0.0:8888 --disable-telemetry --disable-update-check --disable-workspace-trust --disable-getting-started-override --auth none --trusted-origins "*" "${HOME}"
+    command: /usr/bin/code-server --bind-addr 0.0.0.0:8888 --disable-telemetry --disable-update-check --disable-workspace-trust --disable-getting-started-override --auth none --trusted-origins "*" "${HOME}"
     working-dir: /home/jovyan
     user: jovyan
     environment:
