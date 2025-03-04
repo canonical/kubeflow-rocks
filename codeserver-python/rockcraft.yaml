@@ -208,7 +208,7 @@ parts:
 
       # Stage directories
       cp -r /lib/code-server-${CODESERVER_VERSION} ${CRAFT_PART_INSTALL}/lib/code-server
-      ln -sf ${CRAFT_PART_INSTALL}/lib/code-server/bin/code-server ${CRAFT_PART_INSTALL}/usr/bin/code-server
+      ln -sf /lib/code-server/bin/code-server ${CRAFT_PART_INSTALL}/usr/bin/code-server
       cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt"      
       cp -r "${HOME}" "${CRAFT_PART_INSTALL}/home"
       
@@ -238,11 +238,11 @@ parts:
       chmod 2775 ${CRAFT_PRIME}/home/jovyan
       chmod 2775 ${CRAFT_PRIME}/tmp_home/jovyan
 
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/jovyan
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
+      chown -R 584792:users ${CRAFT_PRIME}/home/jovyan
+      chown -R 584792:users ${CRAFT_PRIME}/bin
+      chown -R 584792:users ${CRAFT_PRIME}/opt/conda
 
       mkdir -pv ${CRAFT_PRIME}/usr/local/etc/jupyter
-      chown -R ${NB_USER_ID}:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
+      chown -R ${NB_USER_ID}:users ${CRAFT_PRIME}/usr/local/etc/jupyter
 
       chmod 700 ${CRAFT_PRIME}/${XDG_RUNTIME_DIR}
