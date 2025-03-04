@@ -8,6 +8,7 @@ description: |
 version: "1.10.0-rc.1"
 license: Apache-2.0
 base: ubuntu@22.04
+run-user: _daemon_
 platforms:
   amd64:
 
