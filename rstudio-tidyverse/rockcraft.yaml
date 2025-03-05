@@ -209,12 +209,11 @@ parts:
       cp -r /run/rstudio-server  "${CRAFT_PART_INSTALL}/run/rstudio-server" 
       cp -r /usr/lib/rstudio-server  "${CRAFT_PART_INSTALL}/usr/lib/rstudio-server"
       cp -r /var/lib/rstudio-server  "${CRAFT_PART_INSTALL}/var/lib/rstudio-server" 
-      #cp -r /var/log/rstudio "${CRAFT_PART_INSTALL}/var/log/rstudio" 
       cp "${R_HOME}/etc/Renviron.site" "${CRAFT_PART_INSTALL}/${R_HOME}/etc/Renviron.site"
       cp "$CRAFT_PART_SRC/components/example-notebook-servers/rstudio/rsession.sh" "${CRAFT_PART_INSTALL}/opt"
-      #/var/sh "${CRAFT_PART_INSTALL}/opt/rsession.sh"
       
       # Writing config files for rstudio
+      
       # the default DB path '/var/lib/rstudio-server' causes permission issues when running as a random UID (like in OpenShift)
       # error need to get rstudio
       echo "provider=sqlite" > "${CRAFT_PART_INSTALL}/etc/rstudio/database.conf"
@@ -258,12 +257,7 @@ parts:
       
       chmod -R g+rwx ${CRAFT_PRIME}/${HOME} 
       chmod -R g+rwx ${CRAFT_PRIME}/${HOME_TMP} 
-      #chmod -R g+rwx ${CRAFT_PRIME}/${CONDA_DIR} 
       chmod -R g+rwx ${CRAFT_PRIME}/opt
-      
-      #chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/${HOME} 
-      #chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/${HOME_TMP} 
-      #chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/${CONDA_DIR} 
       
       # allows the non-root NB_USER to run rstudio
       chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/${R_HOME} 
