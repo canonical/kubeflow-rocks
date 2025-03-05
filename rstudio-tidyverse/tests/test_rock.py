@@ -21,4 +21,4 @@ def test_rock():
     assert rock_services["rstudio-tidyverse"]["startup"] == "enabled"
 
     # verify that artifacts are in correct locations
-    subprocess.run(["docker", "run", LOCAL_ROCK_IMAGE, "exec", "ls", "-ls", "/opt/conda/bin/rstudio-tidyverse"], check=True)
+    subprocess.run(["docker", "run", LOCAL_ROCK_IMAGE, "exec", "ls", "-ls", "/usr/lib/rstudio-server/bin/rserver"], check=True)

@@ -1,16 +1,6 @@
 #
 # This python script tests loading of required modules
 #
-# jupyter packages
-import jupyterlab
-import notebook
-import ipykernel
-
-# pytorch packages
-import torch
-import torchvision
-import torchaudio
-
 # kubeflow packages
 import kfp
 import kfp_server_api

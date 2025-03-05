@@ -7,7 +7,6 @@ description: |
 version: "v1.10.0-rc.1"
 license: Apache-2.0
 base: ubuntu@22.04
-run-user: _daemon_
 platforms:
   amd64:
 
@@ -16,23 +15,20 @@ services:
     override: replace
     summary: "Rstudio Tidyverse service"
     startup: enabled
-    command: rocker/tidyverse --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.allow_remote_access=True --ServerApp.base_url="/" --ServerApp.authenticate_prometheus="False"
+    command: /usr/lib/rstudio-server/bin/rserver --server-daemonize=0 --server-data-dir="/tmp/rstudio_runtime" --server-working-dir="/home/jovyan" --server-user="jovyan" --rsession-which-r="/opt/conda/lib/R" --www-address=0.0.0.0 --www-port=8888 --auth-none=1 --rsession-path=/opt/rsession.sh --rsession-ld-library-path=/opt/conda/lib
     working-dir: /opt/conda/bin/
     environment:
        NB_USER: jovyan
-       NB_UID: 1000
        NB_GID: 0
        NB_PREFIX: /
        HOME: /home/$NB_USER
        SHELL: /bin/bash
        USERS_GID: 100
        HOME_TMP: /tmp_home/$NB_USER
-       S6_CMD_WAIT_FOR_SERVICES_MAXTIME: 300000
-       S6_BEHAVIOUR_IF_STAGE2_FAILS: 2
        LANG: en_US.UTF-8
        LANGUAGE: en_US.UTF-8
        LC_ALL: en_US.UTF-8
-
+       RSTUDIO_RUNTIME_DIR: "/tmp/rstudio_runtime"
 parts:
   security-team-requirement:
     plugin: nil
@@ -169,8 +165,6 @@ parts:
       # R needs TZ set
       echo "TZ=${TZ}" >> "${R_HOME}/etc/Renviron.site"
       
-      
-
       # install - rstudio-server
       curl -fsSL "${RSTUDIO_DEB_URL}" -o /tmp/rstudio-server.deb 
       
@@ -216,7 +210,7 @@ parts:
       cp -r /var/lib/rstudio-server  "${CRAFT_PART_INSTALL}/var/lib/rstudio-server" 
       #cp -r /var/log/rstudio "${CRAFT_PART_INSTALL}/var/log/rstudio" 
       cp "${R_HOME}/etc/Renviron.site" "${CRAFT_PART_INSTALL}/${R_HOME}/etc/Renviron.site"
-      #cp "$CRAFT_PART_SRC/components/example-notebook-servers/rstudio/rsession.sh" "${CRAFT_PART_INSTALL}/opt"
+      cp "$CRAFT_PART_SRC/components/example-notebook-servers/rstudio/rsession.sh" "${CRAFT_PART_INSTALL}/opt"
       #/var/sh "${CRAFT_PART_INSTALL}/opt/rsession.sh"
       
       # Writing config files for rstudio
@@ -235,7 +229,7 @@ parts:
     after: [rstudio-tidyverse]
     build-environment:
       - NB_USER: jovyan
-      - NB_UID: 1000
+      - NB_UID: 1001
       - NB_GID: 0
       - NB_PREFIX: /
       - HOME: /home/$NB_USER
@@ -245,29 +239,36 @@ parts:
       - CONDA_DIR: /opt/conda
       - R_HOME: "${CONDA_DIR}/lib/R"
     overlay-script: |
-      # create user and set required ownership
-      useradd -M -N \
+      # Create a user in the $CRAFT_OVERLAY chroot
+      useradd -R ${CRAFT_OVERLAY} \
       --shell /bin/bash \
-      --home ${HOME} \
+      --home /home/jovyan \
       --uid ${NB_UID} \
       --gid ${NB_GID} \
       --groups ${USERS_GID} \
-      ${NB_USER} 
+      jovyan
 
     override-prime: |
+      craftctl default
+      
       chmod 2775 ${CRAFT_PRIME}/home/jovyan
       chmod 2775 ${CRAFT_PRIME}/tmp_home/jovyan
       chmod 2775 ${CRAFT_PRIME}/${CONDA_DIR} 
-      chown -R ${NB_USER}:${USERS_GID} ${CRAFT_PRIME}/${HOME} 
-      chown -R ${NB_USER}:${USERS_GID} ${CRAFT_PRIME}/${HOME_TMP} 
-      chown -R ${NB_USER}:${NB_GID} ${CRAFT_PRIME}/${CONDA_DIR} 
-
+      
+      chmod -R g+rwx ${CRAFT_PRIME}/${HOME} 
+      chmod -R g+rwx ${CRAFT_PRIME}/${HOME_TMP} 
+      chmod -R g+rwx ${CRAFT_PRIME}/${CONDA_DIR} 
+      
+      #chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/${HOME} 
+      #chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/${HOME_TMP} 
+      #chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/${CONDA_DIR} 
+      
       # allows the non-root NB_USER to run rstudio
-      chown -R ${NB_USER}:${NB_GID} ${CRAFT_PRIME}/${R_HOME} 
-      chown -R ${NB_USER}:${NB_GID} ${CRAFT_PRIME}/etc/rstudio 
-      chown -R ${NB_USER}:${NB_GID} ${CRAFT_PRIME}/run/rstudio-server* 
-      chown -R ${NB_USER}:${NB_GID} ${CRAFT_PRIME}/usr/lib/rstudio-server 
-      chown -R ${NB_USER}:${NB_GID} ${CRAFT_PRIME}/var/lib/rstudio-server 
+      chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/${R_HOME} 
+      chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/etc/rstudio 
+      chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/run/rstudio-server* 
+      chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/usr/lib/rstudio-server 
+      chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/var/lib/rstudio-server 
                                
       # give group same access as user (needed for OpenShift)
       chmod -R g=u ${CRAFT_PRIME}/${R_HOME} 
