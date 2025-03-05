@@ -3,9 +3,9 @@
 # See LICENSE file for licensing details.
 #
 #
+import tenacity
 import subprocess
 import requests
-import tenacity
 
 from charmed_kubeflow_chisme.rock import CheckRock
 
@@ -13,7 +13,7 @@ from charmed_kubeflow_chisme.rock import CheckRock
 stop=tenacity.stop_after_attempt(5),
 wait=tenacity.wait_fixed(2)
 )
-def check_notebook_server_up(url):
+def check_rstudio_server_up(url):
     response = requests.get(url)
     response.raise_for_status() # Raise an exception if the request was unsuccessful
     return response.text
@@ -30,7 +30,7 @@ def main():
     container_id = container_id[0:12]
 
     # Try to reach the notebook server
-    output = check_notebook_server_up("http://0.0.0.0:8888/")
+    output = check_rstudio_server_up("http://0.0.0.0:8888/")
 
     # cleanup
     subprocess.run(["docker", "stop", f"{container_id}"])

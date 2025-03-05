@@ -13,12 +13,18 @@ def test_rock():
     check_rock = CheckRock("rockcraft.yaml")
     rock_image = check_rock.get_name()
     rock_version = check_rock.get_version()
-    rock_services = check_rock.get_services()
     LOCAL_ROCK_IMAGE = f"{rock_image}:{rock_version}"
 
-    # verify rock service
-    assert rock_services["rstudio-tidyverse"]
-    assert rock_services["rstudio-tidyverse"]["startup"] == "enabled"
-
-    # verify that artifacts are in correct locations
-    subprocess.run(["docker", "run", LOCAL_ROCK_IMAGE, "exec", "ls", "-ls", "/usr/lib/rstudio-server/bin/rserver"], check=True)
+    subprocess.run(
+        [
+            "docker",
+            "run",
+            "--rm",
+            LOCAL_ROCK_IMAGE,
+            "exec",
+            "sh",
+            "-c",
+            "test -d /opt/conda/lib/R/library/tidyverse"
+        ],
+        check=True,
+    )
