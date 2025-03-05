@@ -21,10 +21,11 @@ services:
        NB_USER: jovyan
        NB_GID: 0
        NB_PREFIX: /
-       HOME: /home/$NB_USER
+       HOME: /home/jovyan
        SHELL: /bin/bash
+       USER: jovyan
        USERS_GID: 100
-       HOME_TMP: /tmp_home/$NB_USER
+       HOME_TMP: /tmp_home/jovyan
        LANG: en_US.UTF-8
        LANGUAGE: en_US.UTF-8
        LC_ALL: en_US.UTF-8
@@ -232,10 +233,10 @@ parts:
       - NB_UID: 1001
       - NB_GID: 0
       - NB_PREFIX: /
-      - HOME: /home/$NB_USER
+      - HOME: /home/jovyan
       - SHELL: /bin/bash
       - USERS_GID: 100
-      - HOME_TMP: /tmp_home/$NB_USER
+      - HOME_TMP: /tmp_home/jovyan
       - CONDA_DIR: /opt/conda
       - R_HOME: "${CONDA_DIR}/lib/R"
     overlay-script: |
@@ -243,9 +244,9 @@ parts:
       useradd -R ${CRAFT_OVERLAY} \
       --shell /bin/bash \
       --home /home/jovyan \
-      --uid ${NB_UID} \
-      --gid ${NB_GID} \
-      --groups ${USERS_GID} \
+      --uid 1001 \
+      --gid 0 \
+      --groups 100 \
       jovyan
 
     override-prime: |
@@ -257,7 +258,8 @@ parts:
       
       chmod -R g+rwx ${CRAFT_PRIME}/${HOME} 
       chmod -R g+rwx ${CRAFT_PRIME}/${HOME_TMP} 
-      chmod -R g+rwx ${CRAFT_PRIME}/${CONDA_DIR} 
+      #chmod -R g+rwx ${CRAFT_PRIME}/${CONDA_DIR} 
+      chmod -R g+rwx ${CRAFT_PRIME}/opt
       
       #chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/${HOME} 
       #chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/${HOME_TMP} 
