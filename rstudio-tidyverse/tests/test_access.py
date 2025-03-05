@@ -30,7 +30,7 @@ def main():
     container_id = container_id[0:12]
 
     # Try to reach the notebook server
-    output = check_notebook_server_up("http://0.0.0.0:8888/tidyverse")
+    output = check_notebook_server_up("http://0.0.0.0:8888/")
 
     # cleanup
     subprocess.run(["docker", "stop", f"{container_id}"])
