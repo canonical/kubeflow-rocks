@@ -1,3 +1,8 @@
+# Based on:
+# https://github:com/kubeflow/kubeflow/blob/v1:10:0-rc:1/components/example-notebook-servers/rstudio-tidyverse
+# https://github.com/kubeflow/kubeflow/tree/v1.10.0-rc.1/components/example-notebook-servers/rstudio
+# https://github.com/kubeflow/kubeflow/tree/v1.10.0-rc.1/components/example-notebook-servers/base
+
 name: rstudio-tidyverse
 summary: An image for using tidyverse
 description: |

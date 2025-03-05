@@ -28,3 +28,16 @@ def test_rock():
         ],
         check=True,
     )
+    subprocess.run(
+        [
+            "docker",
+            "run",
+            "--rm",
+            LOCAL_ROCK_IMAGE,
+            "exec",
+            "sh",
+            "-c",
+            "test -f /opt/rsession.sh"
+        ],
+        check=True,
+    )
