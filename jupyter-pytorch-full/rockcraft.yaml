@@ -37,7 +37,8 @@ services:
        LANGUAGE: en_US.UTF-8
        LC_ALL: en_US.UTF-8
        PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-       PYTHONPATH: /opt/conda/lib/python3.11/site-packages/    
+       PYTHONPATH: /opt/conda/lib/python3.11/site-packages/
+       JUPYTER_RUNTIME_DIR: /tmp/jupyter_runtime
 platforms:
   amd64:
 
