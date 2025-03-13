@@ -1,7 +1,7 @@
 # Based on:
-# https://github:com/kubeflow/kubeflow/blob/v1:10:0-rc:1/components/example-notebook-servers/rstudio-tidyverse
-# https://github.com/kubeflow/kubeflow/tree/v1.10.0-rc.1/components/example-notebook-servers/rstudio
-# https://github.com/kubeflow/kubeflow/tree/v1.10.0-rc.1/components/example-notebook-servers/base
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/rstudio-tidyverse/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/rstudio/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/base/Dockerfile
 
 name: rstudio-tidyverse
 summary: An image for using tidyverse
@@ -12,6 +12,8 @@ description: |
 version: "v1.10.0-rc.1"
 license: Apache-2.0
 base: ubuntu@22.04
+# run-user: _daemon_
+
 platforms:
   amd64:
 
@@ -25,16 +27,18 @@ services:
     environment:
        NB_USER: jovyan
        NB_GID: 0
+       NB_UID: 1000
        NB_PREFIX: /
-       HOME: /home/jovyan
+       HOME: "/home/jovyan"
        SHELL: /bin/bash
-       USER: jovyan
+       USER: ${NB_USER}
        USERS_GID: 100
        HOME_TMP: /tmp_home/jovyan
        LANG: en_US.UTF-8
        LANGUAGE: en_US.UTF-8
        LC_ALL: en_US.UTF-8
        RSTUDIO_RUNTIME_DIR: "/tmp/rstudio_runtime"
+       XDG_RUNTIME_DIR: "/tmp/runtime-${NB_USER}"
 parts:
   security-team-requirement:
     plugin: nil
@@ -234,7 +238,7 @@ parts:
     after: [rstudio-tidyverse]
     build-environment:
       - NB_USER: jovyan
-      - NB_UID: 1001
+      - NB_UID: 1000
       - NB_GID: 0
       - NB_PREFIX: /
       - HOME: /home/jovyan
@@ -247,11 +251,11 @@ parts:
       # Create a user in the $CRAFT_OVERLAY chroot
       useradd -R ${CRAFT_OVERLAY} \
       --shell /bin/bash \
-      --home /home/jovyan \
-      --uid 1001 \
-      --gid 0 \
-      --groups 100 \
-      jovyan
+      --home ${HOME} \
+      --uid ${NB_UID} \
+      --gid ${NB_GID} \
+      --groups ${USERS_GID} \
+      ${NB_USER}
 
     override-prime: |
       craftctl default
@@ -259,10 +263,9 @@ parts:
       chmod 2775 ${CRAFT_PRIME}/home/jovyan
       chmod 2775 ${CRAFT_PRIME}/tmp_home/jovyan
       chmod 2775 ${CRAFT_PRIME}/${CONDA_DIR} 
-      
-      chmod -R g+rwx ${CRAFT_PRIME}/${HOME} 
-      chmod -R g+rwx ${CRAFT_PRIME}/${HOME_TMP} 
-      chmod -R g+rwx ${CRAFT_PRIME}/opt
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/${NB_USER}
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
       
       # allows the non-root NB_USER to run rstudio
       chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/${R_HOME} 
