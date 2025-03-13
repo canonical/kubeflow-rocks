@@ -1,7 +1,8 @@
 # Based on the following Dockerfiles:
 # https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/base/Dockerfile
 # https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/jupyter/Dockerfile
-# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/jupyter-tensorflow-full/cpu.Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/jupyter-pytorch/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/jupyter-pytorch-full/Dockerfile
 name: jupyter-pytorch-full
 summary: An image for using Jupyter & PyTorch on CPUs
 description: |
@@ -14,17 +15,18 @@ description: |
 version: "v1.10.0-rc.1"
 license: Apache-2.0
 base: ubuntu@22.04
+run-user: _daemon_
 
 services:
   jupyter:
     override: replace
     summary: "jupyter-pytorch-full service"
     startup: enabled
-    command: ./jupyter lab --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.allow_remote_access=True --ServerApp.base_url="/" --ServerApp.authenticate_prometheus="False"
-    working-dir: /opt/conda/bin/
-    user: jovyan
+    command: bash -c '/opt/conda/bin/jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser --allow-root --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.allow_remote_access=True --ServerApp.authenticate_prometheus=False --ServerApp.base_url=${NB_PREFIX}'
+    working-dir: /home/jovyan/
     environment:
        NB_USER: jovyan
+       NB_UID: 1000
        NB_GID: 0
        NB_PREFIX: /
        USERS_GID: 100
@@ -228,28 +230,26 @@ parts:
     plugin: nil
     after: [conda-jupyter]
     build-environment:
-      - NB_USER_ID: 1001    
-      - NB_GID: 0
+    - HOME: /home/jovyan
+    - NB_UID: 1000
+    - NB_USER: jovyan
+    - NB_GID: 0
+    - USERS_GID: 100
     overlay-script: |
       # Create a user in the $CRAFT_OVERLAY chroot
       useradd -R ${CRAFT_OVERLAY} \
       --shell /bin/bash \
-      --home /home/jovyan \
-      --uid ${NB_USER_ID} \
+      --home ${HOME} \
+      --uid ${NB_UID} \
       --gid ${NB_GID} \
-      --groups users \
-      jovyan
-
+      --groups ${USERS_GID} \
+      ${NB_USER}
     override-prime: |
       craftctl default
-      
-      chmod 2775 ${CRAFT_PRIME}/home/jovyan
-      chmod 2775 ${CRAFT_PRIME}/tmp_home/jovyan
-
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/jovyan
+      chmod 2775 ${CRAFT_PRIME}/home/${NB_USER}
+      chmod 2775 ${CRAFT_PRIME}/tmp_home/${NB_USER}
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/${NB_USER}
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
-      chmod -R g+rwx ${CRAFT_PRIME}/home/jovyan 
-
       mkdir -pv ${CRAFT_PRIME}/usr/local/etc/jupyter
-      chown -R ${NB_USER_ID}:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
+      chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
