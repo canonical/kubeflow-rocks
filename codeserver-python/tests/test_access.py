@@ -29,14 +29,14 @@ def main():
     container_id = container_id[0:12]
 
     # Try to reach the notebook server
-    output = check_notebook_server_up("http://0.0.0.0:8888")
+    output = check_notebook_server_up("http://localhost:8888/?folder=/home/jovyan/")
 
     # cleanup
     subprocess.run(["docker", "stop", f"{container_id}"])
     subprocess.run(["docker", "rm", f"{container_id}"])
 
     # test output
-    assert "vscode" in output
+    assert "jovyan" in output
 
 
 if __name__ == "__main__":
