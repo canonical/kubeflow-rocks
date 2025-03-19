@@ -11,6 +11,10 @@ description: |
 version: "v1.10.0-rc.1"
 license: Apache-2.0
 base: ubuntu@22.04
+# run-user: _daemon_
+# If uncomment breaks with:
+# '[pebble] Change 1 task (Start service "rstudio-tidyverse") failed: cannot start service: fork/exec /usr/lib/rstudio-server/bin/rserver: operation not permitted'
+
 platforms:
   amd64:
 
@@ -261,6 +265,11 @@ parts:
       chmod 2775 ${CRAFT_PRIME}/tmp_home/${NB_USER}
       chmod 2775 ${CRAFT_PRIME}/opt/rsession.sh
       
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/${NB_USER}
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/rsession.sh
+      
       # allows the non-root NB_USER to run rstudio
       chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/${R_HOME} 
       chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/etc/rstudio 
@@ -268,6 +277,14 @@ parts:
       chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/usr/lib/rstudio-server 
       chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/var/lib/rstudio-server 
       
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/${R_HOME} 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/etc/rstudio 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/run/rstudio-server* 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/usr/lib/rstudio-server 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/var/lib/rstudio-server 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/${HOME} 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/${HOME_TMP} 
+
       # give group same access as user (needed for OpenShift)
       chmod -R g=u ${CRAFT_PRIME}/${R_HOME} 
       chmod -R g=u ${CRAFT_PRIME}/etc/rstudio 
