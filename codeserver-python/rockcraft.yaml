@@ -216,7 +216,7 @@ parts:
   # not-root user for this rock should be 'jovyan'
   non-root-user:
     plugin: nil
-    after: [conda-jupyter]
+    after: [conda-codeserver]
     build-environment:
     - HOME: /home/jovyan
     - NB_UID: 1000
