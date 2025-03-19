@@ -1,7 +1,7 @@
 # Based on the following Dockerfiles:
-# https://github.com/kubeflow/kubeflow/blob/v1.9-branch/components/example-notebook-servers/base/Dockerfile
-# https://github.com/kubeflow/kubeflow/blob/v1.9-branch/components/example-notebook-servers/jupyter/Dockerfile
-# https://github.com/kubeflow/kubeflow/blob/v1.9-branch/components/example-notebook-servers/jupyter-tensorflow-full/cpu.Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/base/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/jupyter/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/jupyter-tensorflow-full/Dockerfile
 name: jupyter-tensorflow-full
 summary: An image for using Jupyter & Tensorflow on CPUs
 description: |
@@ -11,7 +11,7 @@ description: |
 
   Both Tensorflow and Jupyter are installed in Conda environment, which is
   automatically activated.
-version: "1.9.0"
+version: "v1.10.0-rc.1"
 license: Apache-2.0
 base: ubuntu@22.04
 run-user: _daemon_
@@ -21,10 +21,11 @@ services:
     override: replace
     summary: "jupyter-tensorflow-full service"
     startup: enabled
-    command: ./jupyter lab --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.allow_remote_access=True --ServerApp.base_url="/" --ServerApp.authenticate_prometheus="False"
-    working-dir: /opt/conda/bin/
+    command: bash -c '/opt/conda/bin/jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser --allow-root --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.allow_remote_access=True --ServerApp.base_url=${NB_PREFIX} --ServerApp.authenticate_prometheus=False'
+    working-dir: /home/jovyan/
     environment:
        NB_USER: jovyan
+       NB_UID: 1000
        NB_GID: 0
        NB_PREFIX: /
        USERS_GID: 100
@@ -35,7 +36,8 @@ services:
        LANGUAGE: en_US.UTF-8
        LC_ALL: en_US.UTF-8
        PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-       PYTHONPATH: /opt/conda/lib/python3.11/site-packages/    
+       PYTHONPATH: /opt/conda/lib/python3.11/site-packages/
+       JUPYTER_RUNTIME_DIR: /tmp/jupyter_runtime
 platforms:
   amd64:
 
@@ -98,7 +100,7 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.9-branch # upstream branch
+    source-tag: v1.10.0-rc.1
     build-packages:
       - lsb-release
       - wget
@@ -115,7 +117,7 @@ parts:
       - CONDA_BIN: "/opt/conda/bin"
       - JUPYTERLAB_VERSION: "4.2.5"
       - JUPYTER_VERSION: "7.2.2"
-      - TENSORFLOW_VERSION: "2.15.1"
+      - TENSORFLOW_VERSION: "2.17.1"
       - MAMBA_ROOT_PREFIX: "/opt/conda"
     stage-packages:
       - python3-distutils
@@ -183,18 +185,18 @@ parts:
 
       # Install the jupyter-tensorflow-full requirements
       "${CONDA_BIN}/mamba" install -y -q \
-        bokeh==3.3.4 \
-        cloudpickle==2.2.1 \
-        dill==0.3.8 \
-        ipympl==0.9.4 \
-        matplotlib==3.8.4 \
-        numpy==1.24.4 \
-        pandas==2.1.4 \
-        scikit-image==0.22.0 \
-        scikit-learn==1.3.2 \
-        scipy==1.11.3 \
+        bokeh==3.6.3 \
+        cloudpickle==3.1.1 \
+        dill==0.3.9 \
+        ipympl==0.9.6 \
+        matplotlib==3.10.0 \
+        numpy==1.26.4 \
+        pandas==2.2.3 \
+        scikit-image==0.25.1 \
+        scikit-learn==1.6.1 \
+        scipy==1.15.1 \
         seaborn==0.13.2 \
-        xgboost==1.7.6 \
+        xgboost==2.1.4 \
 
       "${CONDA_BIN}/mamba" clean -a -f -y
       
@@ -227,27 +229,26 @@ parts:
     plugin: nil
     after: [conda-jupyter]
     build-environment:
-      - NB_USER_ID: 1001    
-      - NB_GID: 0
+    - HOME: /home/jovyan
+    - NB_UID: 1000
+    - NB_USER: jovyan
+    - NB_GID: 0
+    - USERS_GID: 100
     overlay-script: |
       # Create a user in the $CRAFT_OVERLAY chroot
       useradd -R ${CRAFT_OVERLAY} \
       --shell /bin/bash \
-      --home /home/jovyan \
-      --uid ${NB_USER_ID} \
+      --home ${HOME} \
+      --uid ${NB_UID} \
       --gid ${NB_GID} \
-      --groups users \
-      jovyan
-
+      --groups ${USERS_GID} \
+      ${NB_USER}
     override-prime: |
       craftctl default
-      
-      chmod 2775 ${CRAFT_PRIME}/home/jovyan
-      chmod 2775 ${CRAFT_PRIME}/tmp_home/jovyan
-
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/jovyan
+      chmod 2775 ${CRAFT_PRIME}/home/${NB_USER}
+      chmod 2775 ${CRAFT_PRIME}/tmp_home/${NB_USER}
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/${NB_USER}
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
-
       mkdir -pv ${CRAFT_PRIME}/usr/local/etc/jupyter
-      chown -R ${NB_USER_ID}:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
+      chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
