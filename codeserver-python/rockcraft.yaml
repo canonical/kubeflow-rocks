@@ -14,6 +14,7 @@ description: |
 version: "v1.10.0-rc.1"
 license: Apache-2.0
 base: ubuntu@22.04
+run-user: _daemon_
 
 services:
   codeserver-jupyter:
@@ -21,10 +22,10 @@ services:
     summary: "codeserver-jupyter service"
     startup: enabled
     command: /usr/bin/code-server --bind-addr 0.0.0.0:8888 --disable-telemetry --disable-update-check --disable-workspace-trust --disable-getting-started-override --auth none --trusted-origins "*" "${HOME}"
-    working-dir: /home/jovyan
-    user: jovyan
+    working-dir: /home/jovyan/
     environment:
        NB_USER: jovyan
+       NB_UID: 1000
        NB_GID: 0
        NB_PREFIX: /
        USERS_GID: 100
@@ -95,7 +96,7 @@ parts:
       cp /usr/lib/locale/locale-archive $CRAFT_PART_INSTALL/usr/lib/locale/locale-archive
       cp -r /usr/share/i18n/locales $CRAFT_PART_INSTALL/usr/share/i18n/locales
 
-  conda-codeserver-jupyter:
+  conda-codeserver:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
@@ -215,35 +216,30 @@ parts:
   # not-root user for this rock should be 'jovyan'
   non-root-user:
     plugin: nil
-    after: [conda-codeserver-jupyter]
+    after: [conda-jupyter]
     build-environment:
-      - NB_USER_ID: 1001    
-      - NB_GID: 0
-      - NB_USER: jovyan      
-      - XDG_RUNTIME_DIR: /tmp/runtime-${NB_USER}      
+    - HOME: /home/jovyan
+    - NB_UID: 1000
+    - NB_USER: jovyan
+    - NB_GID: 0
+    - USERS_GID: 100
     overlay-script: |
       # Create a user in the $CRAFT_OVERLAY chroot
       useradd -R ${CRAFT_OVERLAY} \
       --shell /bin/bash \
-      --home /home/jovyan \
-      --uid ${NB_USER_ID} \
+      --home ${HOME} \
+      --uid ${NB_UID} \
       --gid ${NB_GID} \
-      --groups users \
-      jovyan
-
+      --groups ${USERS_GID} \
+      ${NB_USER}
     override-prime: |
       craftctl default
-
-      chmod 2775 ${CRAFT_PRIME}/opt/conda
-      chmod 2775 ${CRAFT_PRIME}/home/jovyan
-      chmod 2775 ${CRAFT_PRIME}/tmp_home/jovyan
-
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/jovyan
+      chmod 2775 ${CRAFT_PRIME}/home/${NB_USER}
+      chmod 2775 ${CRAFT_PRIME}/tmp_home/${NB_USER}
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/${NB_USER}
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
-      chmod -R g+rwx ${CRAFT_PRIME}/home/jovyan 
-
       mkdir -pv ${CRAFT_PRIME}/usr/local/etc/jupyter
-      chown -R ${NB_USER_ID}:users ${CRAFT_PRIME}/usr/local/etc/jupyter
+      chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
 
       chmod 700 ${CRAFT_PRIME}/${XDG_RUNTIME_DIR}

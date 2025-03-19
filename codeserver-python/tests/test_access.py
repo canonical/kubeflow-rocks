@@ -13,7 +13,7 @@ from charmed_kubeflow_chisme.rock import CheckRock
 stop=tenacity.stop_after_attempt(5),
 wait=tenacity.wait_fixed(2)
 )
-def check_code_server_up(url):
+def check_notebook_server_up(url):
     response = requests.get(url)
     response.raise_for_status() # Raise an exception if the request was unsuccessful
     return response.text
@@ -29,15 +29,15 @@ def main():
     container_id = subprocess.run(["docker", "run", "-d", "-p", "8888:8888", LOCAL_ROCK_IMAGE], stdout=subprocess.PIPE).stdout.decode('utf-8')
     container_id = container_id[0:12]
 
-    # Try to reach the code server
-    output = check_code_server_up("http://0.0.0.0:8888/")
+    # Try to reach the notebook server
+    output = check_notebook_server_up("http://0.0.0.0:8888/lab")
 
     # cleanup
     subprocess.run(["docker", "stop", f"{container_id}"])
     subprocess.run(["docker", "rm", f"{container_id}"])
 
     # test output
-    assert "Found" in output
+    assert "JupyterLab" in output
 
 
 if __name__ == "__main__":
