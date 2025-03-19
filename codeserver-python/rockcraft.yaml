@@ -223,6 +223,7 @@ parts:
     - NB_USER: jovyan
     - NB_GID: 0
     - USERS_GID: 100
+    - XDG_RUNTIME_DIR: /tmp/runtime-${NB_USER}
     overlay-script: |
       # Create a user in the $CRAFT_OVERLAY chroot
       useradd -R ${CRAFT_OVERLAY} \
