@@ -7,13 +7,10 @@ name: rstudio-tidyverse
 summary: An image for using tidyverse
 description: |
   The tidyverse is an opinionated collection of R packages designed for data science. 
-  
   Tidyverse are installed in Conda environment, which is automatically activated.
 version: "v1.10.0-rc.1"
 license: Apache-2.0
 base: ubuntu@22.04
-# run-user: _daemon_
-
 platforms:
   amd64:
 
@@ -22,21 +19,24 @@ services:
     override: replace
     summary: "Rstudio Tidyverse service"
     startup: enabled
-    command: /usr/lib/rstudio-server/bin/rserver --server-daemonize=0 --server-data-dir="/tmp/rstudio_runtime" --server-working-dir="/home/jovyan" --server-user="jovyan" --rsession-which-r="/opt/conda/lib/R" --www-address=0.0.0.0 --www-port=8888 --auth-none=1 --rsession-path=/opt/rsession.sh --rsession-ld-library-path=/opt/conda/lib
-    working-dir: /opt/conda/bin/
+    command: /usr/lib/rstudio-server/bin/rserver --server-daemonize=0 --server-data-dir=/tmp/rstudio_runtime --server-working-dir=/home/jovyan --server-user=jovyan --rsession-which-r=/opt/conda/lib/R --www-address=0.0.0.0 --www-port=8888 --auth-none=1 --rsession-path=/opt/rsession.sh --rsession-ld-library-path=/opt/conda/lib
+    working-dir: /home/jovyan
+    user: jovyan
     environment:
        NB_USER: jovyan
-       NB_GID: 0
        NB_UID: 1000
+       NB_GID: 0
        NB_PREFIX: /
-       HOME: "/home/jovyan"
-       SHELL: /bin/bash
-       USER: ${NB_USER}
        USERS_GID: 100
+       HOME: /home/jovyan
        HOME_TMP: /tmp_home/jovyan
-       LANG: en_US.UTF-8
+       USER: jovyan
+       SHELL: /bin/bash
+       LANG: en_US.UTF-8to
        LANGUAGE: en_US.UTF-8
        LC_ALL: en_US.UTF-8
+       PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+       PYTHONPATH: /opt/conda/lib/python3.11/site-packages/
        RSTUDIO_RUNTIME_DIR: "/tmp/rstudio_runtime"
        XDG_RUNTIME_DIR: "/tmp/runtime-${NB_USER}"
 parts:
@@ -240,9 +240,7 @@ parts:
       - NB_USER: jovyan
       - NB_UID: 1000
       - NB_GID: 0
-      - NB_PREFIX: /
       - HOME: /home/jovyan
-      - SHELL: /bin/bash
       - USERS_GID: 100
       - HOME_TMP: /tmp_home/jovyan
       - CONDA_DIR: /opt/conda
@@ -259,13 +257,9 @@ parts:
 
     override-prime: |
       craftctl default
-      
-      chmod 2775 ${CRAFT_PRIME}/home/jovyan
-      chmod 2775 ${CRAFT_PRIME}/tmp_home/jovyan
-      chmod 2775 ${CRAFT_PRIME}/${CONDA_DIR} 
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/${NB_USER}
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
+      chmod 2775 ${CRAFT_PRIME}/home/${NB_USER}
+      chmod 2775 ${CRAFT_PRIME}/tmp_home/${NB_USER}
+      chmod 2775 ${CRAFT_PRIME}/opt/rsession.sh
       
       # allows the non-root NB_USER to run rstudio
       chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/${R_HOME} 
@@ -273,11 +267,12 @@ parts:
       chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/run/rstudio-server* 
       chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/usr/lib/rstudio-server 
       chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/var/lib/rstudio-server 
-                               
+      
       # give group same access as user (needed for OpenShift)
       chmod -R g=u ${CRAFT_PRIME}/${R_HOME} 
       chmod -R g=u ${CRAFT_PRIME}/etc/rstudio 
       chmod -R g=u ${CRAFT_PRIME}/run/rstudio-server* 
       chmod -R g=u ${CRAFT_PRIME}/usr/lib/rstudio-server 
       chmod -R g=u ${CRAFT_PRIME}/var/lib/rstudio-server 
+      chmod -R g=u ${CRAFT_PRIME}/${HOME}
       chmod -R g=u ${CRAFT_PRIME}/${HOME_TMP}
