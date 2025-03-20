@@ -11,7 +11,7 @@ description: |
 version: "v1.10.0-rc.1"
 license: Apache-2.0
 base: ubuntu@22.04
-# run-user: _daemon_
+run-user: _daemon_
 # If uncomment breaks with:
 # '[pebble] Change 1 task (Start service "rstudio-tidyverse") failed: cannot start service: fork/exec /usr/lib/rstudio-server/bin/rserver: operation not permitted'
 
@@ -23,18 +23,17 @@ services:
     override: replace
     summary: "Rstudio Tidyverse service"
     startup: enabled
-    command: /usr/lib/rstudio-server/bin/rserver --server-daemonize=0 --server-data-dir=/tmp/rstudio_runtime --server-working-dir=/home/jovyan --server-user=jovyan --rsession-which-r=/opt/conda/lib/R --www-address=0.0.0.0 --www-port=8888 --auth-none=1 --rsession-path=/opt/rsession.sh --rsession-ld-library-path=/opt/conda/lib
-    working-dir: /home/jovyan
-    user: jovyan
+    command: /usr/lib/rstudio-server/bin/rserver --server-daemonize=0 --server-data-dir=/tmp/rstudio_runtime --server-working-dir=/home/_daemon_ --server-user=_daemon_ --rsession-which-r=/opt/conda/lib/R --www-address=0.0.0.0 --www-port=8888 --auth-none=1 --rsession-path=/opt/rsession.sh --rsession-ld-library-path=/opt/conda/lib
+    working-dir: /home/
     environment:
-       NB_USER: jovyan
+       NB_USER: _daemon_
        NB_UID: 1000
        NB_GID: 0
        NB_PREFIX: /
        USERS_GID: 100
-       HOME: /home/jovyan
-       HOME_TMP: /tmp_home/jovyan
-       USER: jovyan
+       HOME: /home/_daemon_
+       HOME_TMP: /tmp_home/_daemon_
+       USER: _daemon_
        SHELL: /bin/bash
        LANG: en_US.UTF-8to
        LANGUAGE: en_US.UTF-8
@@ -42,7 +41,7 @@ services:
        PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
        PYTHONPATH: /opt/conda/lib/python3.11/site-packages/
        RSTUDIO_RUNTIME_DIR: "/tmp/rstudio_runtime"
-       XDG_RUNTIME_DIR: "/tmp/runtime-${NB_USER}"
+       XDG_RUNTIME_DIR: "/tmp/runtime-_daemon_"
 parts:
   security-team-requirement:
     plugin: nil
@@ -129,7 +128,7 @@ parts:
       - RS_LOG_LEVEL: "WARN"
       - RS_LOGGER_TYPE: "stderr"
       - MINIFORGE_ARCH: "x86_64"
-      - NB_USER: "jovyan"
+      - NB_USER: "_daemon_"
       - NB_UID: "1000"
       - NB_GID: "0"
       - NB_PREFIX: "/"
@@ -236,46 +235,36 @@ parts:
       # allow kubeflow to display rstudio in an iframe
       echo "www-frame-origin=same" >> "${CRAFT_PART_INSTALL}/etc/rstudio/rserver.conf" 
 
-  # not-root user for this rock should be 'jovyan'
+  # not-root user for this rock should be '_daemon_'
   non-root-user:
     plugin: nil
     after: [rstudio-tidyverse]
     build-environment:
-      - NB_USER: jovyan
+      - NB_USER: _daemon_
       - NB_UID: 1000
       - NB_GID: 0
-      - HOME: /home/jovyan
+      - HOME: /home/_daemon_
       - USERS_GID: 100
-      - HOME_TMP: /tmp_home/jovyan
+      - HOME_TMP: /tmp_home/_daemon_
       - CONDA_DIR: /opt/conda
       - R_HOME: "${CONDA_DIR}/lib/R"
-    overlay-script: |
-      # Create a user in the $CRAFT_OVERLAY chroot
-      useradd -R ${CRAFT_OVERLAY} \
-      --shell /bin/bash \
-      --home ${HOME} \
-      --uid ${NB_UID} \
-      --gid ${NB_GID} \
-      --groups ${USERS_GID} \
-      ${NB_USER}
-
     override-prime: |
       craftctl default
-      chmod 2775 ${CRAFT_PRIME}/home/${NB_USER}
-      chmod 2775 ${CRAFT_PRIME}/tmp_home/${NB_USER}
+      chmod 2775 ${CRAFT_PRIME}/home/_daemon_
+      chmod 2775 ${CRAFT_PRIME}/tmp_home/_daemon_
       chmod 2775 ${CRAFT_PRIME}/opt/rsession.sh
       
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/${NB_USER}
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/_daemon_
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/rsession.sh
       
       # allows the non-root NB_USER to run rstudio
-      chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/${R_HOME} 
-      chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/etc/rstudio 
-      chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/run/rstudio-server* 
-      chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/usr/lib/rstudio-server 
-      chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/var/lib/rstudio-server 
+      #chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/${R_HOME} 
+      #chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/etc/rstudio 
+      #chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/run/rstudio-server* 
+      #chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/usr/lib/rstudio-server 
+      #chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/var/lib/rstudio-server 
       
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/${R_HOME} 
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/etc/rstudio 
