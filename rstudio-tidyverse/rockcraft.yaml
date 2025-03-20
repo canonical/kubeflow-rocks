@@ -12,8 +12,6 @@ version: "v1.10.0-rc.1"
 license: Apache-2.0
 base: ubuntu@22.04
 run-user: _daemon_
-# If uncomment breaks with:
-# '[pebble] Change 1 task (Start service "rstudio-tidyverse") failed: cannot start service: fork/exec /usr/lib/rstudio-server/bin/rserver: operation not permitted'
 
 platforms:
   amd64:
