@@ -189,11 +189,11 @@ parts:
       dpkg -i /tmp/rstudio-server.deb 
       rm -f /tmp/rstudio-server.deb 
                       
-      # install - r-tidyverse                  
+      # Install - r-tidyverse                  
       "${CONDA_BIN}/conda" install -y -q \
         r-tidyverse="${R_TIDYVERSE_VERSION}" 
                       
-      #clean                  
+      # Clean                  
       "${CONDA_BIN}/conda" clean -a -f -y      
       
       # Create some directories for staging files
@@ -232,43 +232,28 @@ parts:
       echo "lock-type=advisory" > "${CRAFT_PART_INSTALL}/etc/rstudio/file-locks"             
       # allow kubeflow to display rstudio in an iframe
       echo "www-frame-origin=same" >> "${CRAFT_PART_INSTALL}/etc/rstudio/rserver.conf" 
-
-  # not-root user for this rock should be '_daemon_'
-  non-root-user:
-    plugin: nil
-    after: [rstudio-tidyverse]
-    build-environment:
-      - NB_USER: _daemon_
-      - NB_UID: 1000
-      - NB_GID: 0
-      - HOME: /home/_daemon_
-      - USERS_GID: 100
-      - HOME_TMP: /tmp_home/_daemon_
-      - CONDA_DIR: /opt/conda
-      - R_HOME: "${CONDA_DIR}/lib/R"
-    override-prime: |
-      craftctl default
-      chmod 2775 ${CRAFT_PRIME}/home/_daemon_
-      chmod 2775 ${CRAFT_PRIME}/tmp_home/_daemon_
-      chmod 2775 ${CRAFT_PRIME}/opt/rsession.sh
+      
+      chmod 2775 ${CRAFT_PART_INSTALL}/home/_daemon_
+      chmod 2775 ${CRAFT_PART_INSTALL}/tmp_home/_daemon_
+      chmod 2775 ${CRAFT_PART_INSTALL}/opt/rsession.sh
       
       # allows the non-root NB_USER to run rstudio
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/_daemon_
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/${HOME_TMP} 
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/rsession.sh
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/${R_HOME} 
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/etc/rstudio 
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/run/rstudio-server* 
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/usr/lib/rstudio-server 
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/var/lib/rstudio-server 
+      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/home/_daemon_
+      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/${HOME_TMP} 
+      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/bin
+      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/opt/conda
+      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/opt/rsession.sh
+      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/${R_HOME} 
+      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/etc/rstudio 
+      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/run/rstudio-server* 
+      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/usr/lib/rstudio-server 
+      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/var/lib/rstudio-server 
 
       # give group same access as user (needed for OpenShift)
-      chmod -R g=u ${CRAFT_PRIME}/${R_HOME} 
-      chmod -R g=u ${CRAFT_PRIME}/etc/rstudio 
-      chmod -R g=u ${CRAFT_PRIME}/run/rstudio-server* 
-      chmod -R g=u ${CRAFT_PRIME}/usr/lib/rstudio-server 
-      chmod -R g=u ${CRAFT_PRIME}/var/lib/rstudio-server 
-      chmod -R g=u ${CRAFT_PRIME}/${HOME}
-      chmod -R g=u ${CRAFT_PRIME}/${HOME_TMP}
+      chmod -R g=u ${CRAFT_PART_INSTALL}/${R_HOME} 
+      chmod -R g=u ${CRAFT_PART_INSTALL}/etc/rstudio 
+      chmod -R g=u ${CRAFT_PART_INSTALL}/run/rstudio-server* 
+      chmod -R g=u ${CRAFT_PART_INSTALL}/usr/lib/rstudio-server 
+      chmod -R g=u ${CRAFT_PART_INSTALL}/var/lib/rstudio-server 
+      chmod -R g=u ${CRAFT_PART_INSTALL}/${HOME}
+      chmod -R g=u ${CRAFT_PART_INSTALL}/${HOME_TMP}
