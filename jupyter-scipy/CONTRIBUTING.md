@@ -3,9 +3,9 @@
 ## Overview
 This Rock is built based on three upstream Dockerfiles from the Kubeflow project:
 
-- [Base Dockerfile](https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.0/components/example-notebook-servers/base/Dockerfile)
-- [Jupyter Dockerfile](https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.0/components/example-notebook-servers/jupyter/Dockerfile)
-- [Jupyter-SciPy Dockerfile](https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.0/components/example-notebook-servers/jupyter-scipy/Dockerfile)
+- [Base Dockerfile](https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/base/Dockerfile)
+- [Jupyter Dockerfile](https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/jupyter/Dockerfile)
+- [Jupyter-SciPy Dockerfile](https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/jupyter-scipy/Dockerfile)
 
 If you are updating this Rock, ensure you check the above Dockerfiles from top to bottom to track any modifications.
 
@@ -13,8 +13,8 @@ If you are updating this Rock, ensure you check the above Dockerfiles from top t
 The upstream Dockerfiles use `s6` to build images for different architectures, including ARM support. However, for this Rock, we are skipping `s6` because we are not building for ARM.
 
 Additionally, we are skipping the following parts from the upstream Dockerfiles:
-- [`base/Dockerfile#L73`](https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.0/components/example-notebook-servers/base/Dockerfile#L73)
-- [`base/Dockerfile#L129`](https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.0/components/example-notebook-servers/base/Dockerfile#L129)
+- [`base/Dockerfile#L73`](https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/base/Dockerfile#L73)
+- [`base/Dockerfile#L129`](https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/base/Dockerfile#L129)
 
 We are also omitting environment variables related to `s6`.
 
@@ -45,7 +45,7 @@ docker exec -ti <container_id> bash
 ```
 
 Alternatively, you can check the upstream command file:
-[Run Script](https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.0/components/example-notebook-servers/jupyter/s6/services.d/jupyterlab/run)
+[Run Script](https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/jupyter/s6/services.d/jupyterlab/run)
 
 ## Service Command Execution in Rock
 The command in the service definition must be wrapped with `bash -c`. This ensures that when the Rock is executed in a pod, environment variables such as `HOME` and `NB_PREFIX` are dynamically resolved. These variables should **not** be explicitly set in the service section, as their values depend on the specific notebook instance.
