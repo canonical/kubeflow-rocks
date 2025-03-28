@@ -1,16 +1,16 @@
-# Contributing to Jupyter-SciPy Rock
+# Contributing to Jupyter-SciPy rock
 
 ## Overview
-This Rock is built based on three upstream Dockerfiles from the Kubeflow project:
+This rock is built based on three upstream Dockerfiles from the Kubeflow project:
 
 - [Base Dockerfile](https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/base/Dockerfile)
 - [Jupyter Dockerfile](https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/jupyter/Dockerfile)
 - [Jupyter-SciPy Dockerfile](https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/jupyter-scipy/Dockerfile)
 
-If you are updating this Rock, ensure you check the above Dockerfiles from top to bottom to track any modifications.
+If you are updating this rock, ensure you check the above Dockerfiles from top to bottom to track any modifications.
 
 ## Architecture and Scope
-The upstream Dockerfiles use `s6` to build images for different architectures, including ARM support. However, for this Rock, we are skipping `s6` because we are not building for ARM.
+The upstream Dockerfiles use `s6` to build images for different architectures, including ARM support. However, for this rock, we are skipping `s6` because we are not building for ARM.
 
 Additionally, we are skipping the following parts from the upstream Dockerfiles:
 - [`base/Dockerfile#L73`](https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/base/Dockerfile#L73)
@@ -34,8 +34,8 @@ We are also omitting environment variables related to `s6`.
   cat /proc/<process_id>/environ | tr '\0' '\n'
   ```
 
-## Extracting the Command for the Rock
-The command used in the Rock's service section is derived by running the upstream Docker image and inspecting the active processes.
+## Extracting the Command for the rock
+The command used in the rock's service section is derived by running the upstream Docker image and inspecting the active processes.
 To extract the correct command:
 
 ```sh
@@ -47,8 +47,8 @@ docker exec -ti <container_id> bash
 Alternatively, you can check the upstream command file:
 [Run Script](https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/jupyter/s6/services.d/jupyterlab/run)
 
-## Service Command Execution in Rock
-The command in the service definition must be wrapped with `bash -c`. This ensures that when the Rock is executed in a pod, environment variables such as `HOME` and `NB_PREFIX` are dynamically resolved. These variables should **not** be explicitly set in the service section, as their values depend on the specific notebook instance.
+## Service Command Execution in rock
+The command in the service definition must be wrapped with `bash -c`. This ensures that when the rock is executed in a pod, environment variables such as `HOME` and `NB_PREFIX` are dynamically resolved. These variables should **not** be explicitly set in the service section, as their values depend on the specific notebook instance.
 
 ### Example Service Command:
 ```yaml
@@ -56,12 +56,12 @@ command: bash -c './jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser
 ```
 
 ## Preinstalling MLflow Library
-MLflow must be preinstalled in the Rock. The latest version can be checked [here](https://github.com/canonical/mlflow-operator/blob/main/metadata.yaml#L18).
+MLflow must be preinstalled in the rock. The latest version can be checked [here](https://github.com/canonical/mlflow-operator/blob/main/metadata.yaml#L18).
 
 The upstream Docker image does **not** install MLflow by default. This is required for integration purposes within the Charmed Kubeflow ecosystem.
 
-## Running the Rock Locally
-To build the Rock locally, use:
+## Running the rock Locally
+To build the rock locally, use:
 ```sh
 tox -e pack
 tox -e export-to-docker
