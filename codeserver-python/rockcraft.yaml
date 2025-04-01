@@ -11,7 +11,7 @@ description: |
 
   Both PyTorch and Jupyter are installed in Conda environment, which is
   automatically activated.
-version: "v1.10.0-rc.1"
+version: "1.10.0-rc.1"
 license: Apache-2.0
 base: ubuntu@22.04
 run-user: _daemon_
