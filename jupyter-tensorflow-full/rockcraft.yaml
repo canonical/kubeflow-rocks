@@ -239,5 +239,6 @@ parts:
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
       mkdir -pv ${CRAFT_PRIME}/usr/local/etc/jupyter
+      mkdir -pv ${CRAFT_PRIME}/usr/local/bin
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/usr/local/bin
