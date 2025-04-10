@@ -158,7 +158,7 @@ parts:
       # Install the jupyter python requirements
       echo "jupyterlab ==${JUPYTERLAB_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned
       echo "notebook ==${JUPYTER_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned
-      "${CONDA_BIN}/conda" install -y -q \
+      "${CONDA_BIN}/conda" install -y -q --solver=classic \
         jupyterlab==${JUPYTERLAB_VERSION} \
         notebook==${JUPYTER_VERSION}
       "${CONDA_BIN}/conda" clean -a -f -y
