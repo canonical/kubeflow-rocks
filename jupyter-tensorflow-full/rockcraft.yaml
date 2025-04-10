@@ -236,7 +236,6 @@ parts:
       chmod 2775 ${CRAFT_PRIME}/home/${NB_USER}
       chmod 2775 ${CRAFT_PRIME}/tmp_home/${NB_USER}
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/${NB_USER}
-      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/tmp_home/${NB_USER}
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
       mkdir -pv ${CRAFT_PRIME}/usr/local/etc/jupyter
