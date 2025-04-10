@@ -143,16 +143,14 @@ parts:
       "${CONDA_BIN}/conda" config --system --set auto_update_conda false
       "${CONDA_BIN}/conda" config --system --set show_channel_urls true
 
-      echo "conda ${MINIFORGE_VERSION:0:-2}" >> "${CONDA_DIR}/conda-meta/pinned"
+      echo "conda ${MINIFORGE_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned"
       echo "python ==${PYTHON_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned"
 
       # Install the correct versions of python, conda, pip
       "${CONDA_BIN}/conda" install -y -q \
                           python="${PYTHON_VERSION}" \
-                          conda="${MINIFORGE_VERSION:0:-2}" \
-                          pip="${PIP_VERSION}"\
-			  libxml2="2.14.0"
-
+                          conda="${MINIFORGE_VERSION}" \
+                          pip="${PIP_VERSION}"
       # Clean up
       "${CONDA_BIN}/conda" update -y -q --all
       "${CONDA_BIN}/conda" clean -a -f -y
