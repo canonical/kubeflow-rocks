@@ -1,7 +1,7 @@
 # Based on the following Dockerfiles:
-# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/base/Dockerfile
-# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/jupyter/Dockerfile
-# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/jupyter-tensorflow-full/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/base/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/jupyter/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/jupyter-tensorflow-full/Dockerfile
 name: jupyter-tensorflow-full
 summary: An image for using Jupyter & Tensorflow on CPUs
 description: |
@@ -11,7 +11,7 @@ description: |
 
   Both Tensorflow and Jupyter are installed in Conda environment, which is
   automatically activated.
-version: "1.10.0-rc.1"
+version: "1.10.0"
 license: Apache-2.0
 base: ubuntu@22.04
 run-user: _daemon_
@@ -21,23 +21,23 @@ services:
     override: replace
     summary: "jupyter-tensorflow-full service"
     startup: enabled
-    command: bash -c '/opt/conda/bin/jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser --allow-root --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.allow_remote_access=True --ServerApp.base_url=${NB_PREFIX} --ServerApp.authenticate_prometheus=False'
+    command: bash -c 'cp -n -r -T ${HOME_TMP} ${HOME} && /opt/conda/bin/jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser --allow-root --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.allow_remote_access=True --ServerApp.base_url=${NB_PREFIX} --ServerApp.authenticate_prometheus=False'
     working-dir: /home/jovyan/
     environment:
-       NB_USER: jovyan
-       NB_UID: 1000
-       NB_GID: 0
-       NB_PREFIX: /
-       USERS_GID: 100
-       HOME: /home/jovyan
-       HOME_TMP: /tmp_home/jovyan
-       SHELL: /bin/bash
-       LANG: en_US.UTF-8
-       LANGUAGE: en_US.UTF-8
-       LC_ALL: en_US.UTF-8
-       PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-       PYTHONPATH: /opt/conda/lib/python3.11/site-packages/
-       JUPYTER_RUNTIME_DIR: /tmp/jupyter_runtime
+       NB_USER: "jovyan"
+       NB_UID: "1000"
+       NB_GID: "0"
+       NB_PREFIX: "/"
+       USERS_GID: "100"
+       HOME: "/home/jovyan"
+       HOME_TMP: "/tmp_home/jovyan"
+       SHELL: "/bin/bash"
+       LANG: "en_US.UTF-8"
+       LANGUAGE: "en_US.UTF-8"
+       LC_ALL: "en_US.UTF-8"
+       PATH: "/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+       PYTHONPATH: "/opt/conda/lib/python3.11/site-packages/"
+       JUPYTER_RUNTIME_DIR: "/tmp/jupyter_runtime"
 platforms:
   amd64:
 
@@ -75,7 +75,7 @@ parts:
   kubectl:
     plugin: nil
     stage-snaps:
-      - kubectl/1.29/stable
+      - kubectl/1.31/stable
     organize:
       kubectl: bin/kubectl
     stage:
@@ -106,17 +106,17 @@ parts:
       - wget
     build-environment:
       - MINIFORGE_ARCH: "x86_64"
-      - MINIFORGE_VERSION: "24.7.1-2"
-      - PIP_VERSION: "24.2"
-      - PYTHON_VERSION: "3.11.10"
+      - MINIFORGE_VERSION: "24.11.3-0"
+      - PIP_VERSION: "24.3.1"
+      - PYTHON_VERSION: "3.11.11"
       - HOME: "/home/jovyan"
-      - HOME_TMP: /tmp_home/jovyan
-      - NB_USER: jovyan
-      - NB_GID: 0
+      - HOME_TMP: "/tmp_home/jovyan"
+      - NB_USER: "jovyan"
+      - NB_GID: "0"
       - CONDA_DIR: "/opt/conda"
       - CONDA_BIN: "/opt/conda/bin"
-      - JUPYTERLAB_VERSION: "4.2.5"
-      - JUPYTER_VERSION: "7.2.2"
+      - JUPYTERLAB_VERSION: "4.3.5"
+      - JUPYTER_VERSION: "7.3.2"
       - TENSORFLOW_VERSION: "2.17.1"
       - MAMBA_ROOT_PREFIX: "/opt/conda"
     stage-packages:
@@ -172,10 +172,6 @@ parts:
       "${CONDA_BIN}/jupyter" labextension lock --level=system "@jupyterlab/apputils-extension"
 
       # Install the jupyter-tensorflow requirements
-      "${CONDA_BIN}/mamba" install -y -q \
-        h5py==3.11.0
-      "${CONDA_BIN}/mamba" clean -a -f -y
-
       "${CONDA_BIN}/pip" install --quiet --no-cache-dir \
         tensorflow==${TENSORFLOW_VERSION}
 
@@ -223,26 +219,18 @@ parts:
       # Stage the conda directories
       cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt"
       cp -r "${HOME}" "${CRAFT_PART_INSTALL}/home"
+      cp -p -r -T "${HOME}" "${HOME_TMP}"
       
   # not-root user for this rock should be 'jovyan'
   non-root-user:
     plugin: nil
     after: [conda-jupyter]
     build-environment:
-    - HOME: /home/jovyan
-    - NB_UID: 1000
-    - NB_USER: jovyan
-    - NB_GID: 0
-    - USERS_GID: 100
-    overlay-script: |
-      # Create a user in the $CRAFT_OVERLAY chroot
-      useradd -R ${CRAFT_OVERLAY} \
-      --shell /bin/bash \
-      --home ${HOME} \
-      --uid ${NB_UID} \
-      --gid ${NB_GID} \
-      --groups ${USERS_GID} \
-      ${NB_USER}
+    - HOME: "/home/jovyan"
+    - NB_UID: "1000"
+    - NB_USER: "jovyan"
+    - NB_GID: "0"
+    - USERS_GID: "100"
     override-prime: |
       craftctl default
       chmod 2775 ${CRAFT_PRIME}/home/${NB_USER}
@@ -251,4 +239,5 @@ parts:
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
       mkdir -pv ${CRAFT_PRIME}/usr/local/etc/jupyter
-      chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/usr/local/bin
