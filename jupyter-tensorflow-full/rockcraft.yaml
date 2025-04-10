@@ -218,8 +218,8 @@ parts:
 
       # Stage the conda directories
       cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt"
-      cp -r "${HOME}" "${CRAFT_PART_INSTALL}/${HOME}"
-      cp -p -r -T "${HOME}" "${CRAFT_PART_INSTALL}/${HOME_TMP}"
+      cp -r "${HOME}" "${CRAFT_PART_INSTALL}/home"
+      cp -r "${HOME}" "${CRAFT_PART_INSTALL}/tmp_home"
       
   # not-root user for this rock should be 'jovyan'
   non-root-user:
