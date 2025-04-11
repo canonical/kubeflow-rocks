@@ -1,14 +1,14 @@
 # Based on:
-# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/rstudio-tidyverse/Dockerfile
-# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/rstudio/Dockerfile
-# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/base/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/base/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/rstudio/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/rstudio-tidyverse/Dockerfile
 
 name: rstudio-tidyverse
 summary: An image for using tidyverse
 description: |
   The tidyverse is an opinionated collection of R packages designed for data science. 
   Tidyverse are installed in Conda environment, which is automatically activated.
-version: "v1.10.0-rc.1"
+version: "v1.10.0"
 license: Apache-2.0
 base: ubuntu@22.04
 run-user: _daemon_
@@ -29,17 +29,21 @@ services:
        NB_GID: 0
        NB_PREFIX: /
        USERS_GID: 100
+       CONDA_DIR: /opt/conda
        HOME: /home/_daemon_
        HOME_TMP: /tmp_home/_daemon_
        USER: _daemon_
        SHELL: /bin/bash
-       LANG: en_US.UTF-8to
+       LANG: en_US.UTF-8
        LANGUAGE: en_US.UTF-8
        LC_ALL: en_US.UTF-8
        PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
        PYTHONPATH: /opt/conda/lib/python3.11/site-packages/
        RSTUDIO_RUNTIME_DIR: "/tmp/rstudio_runtime"
-       XDG_RUNTIME_DIR: "/tmp/runtime-_daemon_"
+       R_HOME: $CONDA_DIR/lib/R
+       RS_LOG_LEVEL: WARN
+       RS_LOGGER_TYPE: stderr
+       XDG_RUNTIME_DIR: "/tmp/runtime-${NB_USER}"
 parts:
   security-team-requirement:
     plugin: nil
@@ -95,7 +99,7 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.10.0-rc.1
+    source-tag: v1.10.0
     build-packages:
       - lsb-release
       - wget
@@ -144,7 +148,6 @@ parts:
       - python3-distutils
     override-build: |
       # setup environment for conda
-      set -xe
       mkdir -p "$CONDA_DIR" "$HOME"
       
       # install - conda, pip, python
@@ -248,12 +251,3 @@ parts:
       chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/run/rstudio-server* 
       chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/usr/lib/rstudio-server 
       chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/var/lib/rstudio-server 
-
-      # give group same access as user (needed for OpenShift)
-      chmod -R g=u ${CRAFT_PART_INSTALL}/${R_HOME} 
-      chmod -R g=u ${CRAFT_PART_INSTALL}/etc/rstudio 
-      chmod -R g=u ${CRAFT_PART_INSTALL}/run/rstudio-server* 
-      chmod -R g=u ${CRAFT_PART_INSTALL}/usr/lib/rstudio-server 
-      chmod -R g=u ${CRAFT_PART_INSTALL}/var/lib/rstudio-server 
-      chmod -R g=u ${CRAFT_PART_INSTALL}/${HOME}
-      chmod -R g=u ${CRAFT_PART_INSTALL}/${HOME_TMP}
