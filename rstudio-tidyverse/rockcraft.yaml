@@ -229,9 +229,6 @@ parts:
       # allow kubeflow to display rstudio in an iframe
       echo "www-frame-origin=same" >> "${CRAFT_PART_INSTALL}/etc/rstudio/rserver.conf" 
 
-  # If we start service with jovyan as user in this rock we're going to get error:
-  # "Change 1 task (Start service "rstudio-tidyverse") failed: cannot start service: fork/exec /usr/lib/rstudio-server/bin/rserver: operation not permitted"
-  # To solve this, used _daemon_ instead of jovyan
   non-root-user:
     plugin: nil
     after: [rstudio-tidyverse]
