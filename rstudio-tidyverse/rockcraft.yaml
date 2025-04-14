@@ -21,16 +21,14 @@ services:
     override: replace
     summary: "Rstudio Tidyverse service"
     startup: enabled
-    command: bash -c '/usr/lib/rstudio-server/bin/rserver --server-daemonize=0 --server-data-dir=/tmp/rstudio_runtime --server-working-dir=${HOME} --server-user=${NB_USER} --rsession-which-r=${R_HOME} --www-address=0.0.0.0 --www-port=8888 --auth-none=1 --rsession-path=/opt/rsession.sh --rsession-ld-library-path=/opt/conda/lib'
-    working-dir: /home/_daemon_
     environment:
        NB_USER: "_daemon_"
        NB_UID: "1000"
        NB_GID: "0"
        USERS_GID: "100"
        CONDA_DIR: "/opt/conda"
-       HOME: "/home/_daemon_"
-       HOME_TMP: "/tmp_home/_daemon_"
+       HOME: "/home/jovyan"
+       HOME_TMP: "/tmp_home/jovyan"
        USER: "_daemon_"
        SHELL: "/bin/bash"
        LANG: "en_US.UTF-8"
@@ -41,7 +39,9 @@ services:
        R_HOME: "/opt/conda/lib/R"
        RS_LOG_LEVEL: "WARN"
        RS_LOGGER_TYPE: "stderr"
-       XDG_RUNTIME_DIR: "/tmp/runtime-_daemon_"
+       XDG_RUNTIME_DIR: "/tmp/runtime-jovyan"
+    command: bash -c '/usr/lib/rstudio-server/bin/rserver --server-daemonize=0 --server-data-dir=/tmp/rstudio_runtime --server-working-dir=${HOME} --server-user=${NB_USER} --rsession-which-r=${R_HOME} --www-address=0.0.0.0 --www-port=8888 --auth-none=1 --rsession-path=/opt/rsession.sh --rsession-ld-library-path=/opt/conda/lib'
+    working-dir: /home/jovyan
 parts:
   security-team-requirement:
     plugin: nil
@@ -129,8 +129,8 @@ parts:
       - RS_LOGGER_TYPE: "stderr"
       - MINIFORGE_ARCH: "x86_64"
       - NB_USER: "_daemon_"
-      - HOME: "/home/$NB_USER"
-      - HOME_TMP: "/tmp_home/$NB_USER"
+      - HOME: "/home/jovyan"
+      - HOME_TMP: "/tmp_home/jovyan"
       - SHELL: "/bin/bash"
       - USERS_GID: "100"
       - CONDA_DIR: "/opt/conda"
@@ -237,8 +237,8 @@ parts:
     after: [rstudio-tidyverse]
     build-environment:
       - NB_USER: "_daemon_"
-      - HOME: "/home/$NB_USER"
-      - HOME_TMP: "/tmp_home/$NB_USER"
+      - HOME: "/home/jovyan"
+      - HOME_TMP: "/tmp_home/jovyan"
       - NB_UID: "1000"
       - NB_GID: "0"
       - USERS_GID: "100"
