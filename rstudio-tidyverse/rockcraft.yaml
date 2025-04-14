@@ -21,29 +21,27 @@ services:
     override: replace
     summary: "Rstudio Tidyverse service"
     startup: enabled
-    command: /usr/lib/rstudio-server/bin/rserver --server-daemonize=0 --server-data-dir=/tmp/rstudio_runtime --server-working-dir=/home/_daemon_ --server-user=_daemon_ --rsession-which-r=/opt/conda/lib/R --www-address=0.0.0.0 --www-port=8888 --auth-none=1 --rsession-path=/opt/rsession.sh --rsession-ld-library-path=/opt/conda/lib
-    working-dir: /home/
+    command: bash -c '/usr/lib/rstudio-server/bin/rserver --server-daemonize=0 --server-data-dir=/tmp/rstudio_runtime --server-working-dir=${HOME} --server-user=${NB_USER} --rsession-which-r=${R_HOME} --www-address=0.0.0.0 --www-port=8888 --auth-none=1 --rsession-path=/opt/rsession.sh --rsession-ld-library-path=/opt/conda/lib'
+    working-dir: /home/_daemon_
     environment:
-       NB_USER: _daemon_
-       NB_UID: 1000
-       NB_GID: 0
-       NB_PREFIX: /
-       USERS_GID: 100
-       CONDA_DIR: /opt/conda
-       HOME: /home/_daemon_
-       HOME_TMP: /tmp_home/_daemon_
-       USER: _daemon_
-       SHELL: /bin/bash
-       LANG: en_US.UTF-8
-       LANGUAGE: en_US.UTF-8
-       LC_ALL: en_US.UTF-8
-       PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-       PYTHONPATH: /opt/conda/lib/python3.11/site-packages/
-       RSTUDIO_RUNTIME_DIR: "/tmp/rstudio_runtime"
-       R_HOME: $CONDA_DIR/lib/R
-       RS_LOG_LEVEL: WARN
-       RS_LOGGER_TYPE: stderr
-       XDG_RUNTIME_DIR: "/tmp/runtime-${NB_USER}"
+       NB_USER: "_daemon_"
+       NB_UID: "1000"
+       NB_GID: "0"
+       USERS_GID: "100"
+       CONDA_DIR: "/opt/conda"
+       HOME: "/home/_daemon_"
+       HOME_TMP: "/tmp_home/_daemon_"
+       USER: "_daemon_"
+       SHELL: "/bin/bash"
+       LANG: "en_US.UTF-8"
+       LANGUAGE: "en_US.UTF-8"
+       LC_ALL: "en_US.UTF-8"
+       PATH: "/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+       PYTHONPATH: "/opt/conda/lib/python3.11/site-packages/"
+       R_HOME: "/opt/conda/lib/R"
+       RS_LOG_LEVEL: "WARN"
+       RS_LOGGER_TYPE: "stderr"
+       XDG_RUNTIME_DIR: "/tmp/runtime-_daemon_"
 parts:
   security-team-requirement:
     plugin: nil
@@ -131,19 +129,16 @@ parts:
       - RS_LOGGER_TYPE: "stderr"
       - MINIFORGE_ARCH: "x86_64"
       - NB_USER: "_daemon_"
-      - NB_UID: "1000"
-      - NB_GID: "0"
-      - NB_PREFIX: "/"
       - HOME: "/home/$NB_USER"
+      - HOME_TMP: "/tmp_home/$NB_USER"
       - SHELL: "/bin/bash"
       - USERS_GID: "100"
-      - HOME_TMP: "/tmp_home/$NB_USER"
       - CONDA_DIR: "/opt/conda"
       - CONDA_BIN: "/opt/conda/bin"
       - RSTUDIO_DEB_URL: "https://s3.amazonaws.com/rstudio-ide-build/server/jammy/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb"
       - GNUPGHOME: "$(mktemp -d)"
       - MLFLOW_VERSION: "2.1.1"
-      - TZ: Etc/UTC
+      - TZ: "Etc/UTC"
     stage-packages:
       - python3-distutils
     override-build: |
@@ -226,28 +221,44 @@ parts:
       cp "$CRAFT_PART_SRC/components/example-notebook-servers/rstudio/rsession.sh" "${CRAFT_PART_INSTALL}/opt"
       
       # Writing config files for rstudio
-      
       # the default DB path '/var/lib/rstudio-server' causes permission issues when running as a random UID (like in OpenShift)
-      # error need to get rstudio
       echo "provider=sqlite" > "${CRAFT_PART_INSTALL}/etc/rstudio/database.conf"
       echo "directory=/tmp/rstudio_db" >> "${CRAFT_PART_INSTALL}/etc/rstudio/database.conf"               
       # use advisory file-locks to improve PVC support
       echo "lock-type=advisory" > "${CRAFT_PART_INSTALL}/etc/rstudio/file-locks"             
       # allow kubeflow to display rstudio in an iframe
       echo "www-frame-origin=same" >> "${CRAFT_PART_INSTALL}/etc/rstudio/rserver.conf" 
-      
-      chmod 2775 ${CRAFT_PART_INSTALL}/home/_daemon_
-      chmod 2775 ${CRAFT_PART_INSTALL}/tmp_home/_daemon_
-      chmod 2775 ${CRAFT_PART_INSTALL}/opt/rsession.sh
-      
+
+  # If we start service with jovyan as user in this rock we're going to get error:
+  # "Change 1 task (Start service "rstudio-tidyverse") failed: cannot start service: fork/exec /usr/lib/rstudio-server/bin/rserver: operation not permitted"
+  # To solve this, used _daemon_ instead of jovyan
+  non-root-user:
+    plugin: nil
+    after: [rstudio-tidyverse]
+    build-environment:
+      - NB_USER: "_daemon_"
+      - HOME: "/home/$NB_USER"
+      - HOME_TMP: "/tmp_home/$NB_USER"
+      - NB_UID: "1000"
+      - NB_GID: "0"
+      - USERS_GID: "100"
+      - CONDA_DIR: "/opt/conda"
+      - R_HOME: "${CONDA_DIR}/lib/R"
+    override-prime: |
+      craftctl default
+        
+      chmod 2775 ${CRAFT_PRIME}/${HOME} 
+      chmod 2775 ${CRAFT_PRIME}/${HOME_TMP} 
+      chmod 2775 ${CRAFT_PRIME}/opt/rsession.sh
+        
       # allows the non-root NB_USER to run rstudio
-      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/home/_daemon_
-      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/${HOME_TMP} 
-      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/bin
-      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/opt/conda
-      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/opt/rsession.sh
-      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/${R_HOME} 
-      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/etc/rstudio 
-      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/run/rstudio-server* 
-      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/usr/lib/rstudio-server 
-      chown -R 584792:${NB_GID} ${CRAFT_PART_INSTALL}/var/lib/rstudio-server 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/${HOME} 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/${HOME_TMP} 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/${CONDA_DIR}
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/rsession.sh
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/${R_HOME} 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/etc/rstudio 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/run/rstudio-server* 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/usr/lib/rstudio-server 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/var/lib/rstudio-server
