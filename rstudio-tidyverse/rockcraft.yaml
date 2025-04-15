@@ -128,7 +128,6 @@ parts:
       - RS_LOG_LEVEL: "WARN"
       - RS_LOGGER_TYPE: "stderr"
       - MINIFORGE_ARCH: "x86_64"
-      - NB_USER: "_daemon_"
       - HOME: "/home/jovyan"
       - HOME_TMP: "/tmp_home/jovyan"
       - SHELL: "/bin/bash"
@@ -211,7 +210,7 @@ parts:
       rm -rf "${HOME}/.cache"
 
       # Stage the directories
-      cp -r "${HOME}" "${CRAFT_PART_INSTALL}/home"
+      cp -r "${HOME}" "${CRAFT_PART_INSTALL}/home/jovyan"
       cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt"
       cp -r /etc/rstudio "${CRAFT_PART_INSTALL}/etc/rstudio"
       cp -r /run/rstudio-server  "${CRAFT_PART_INSTALL}/run/rstudio-server" 
@@ -233,12 +232,9 @@ parts:
     plugin: nil
     after: [rstudio-tidyverse]
     build-environment:
-      - NB_USER: "_daemon_"
       - HOME: "/home/jovyan"
       - HOME_TMP: "/tmp_home/jovyan"
-      - NB_UID: "1000"
       - NB_GID: "0"
-      - USERS_GID: "100"
       - CONDA_DIR: "/opt/conda"
       - R_HOME: "${CONDA_DIR}/lib/R"
     override-prime: |
@@ -248,7 +244,7 @@ parts:
       chmod 2775 ${CRAFT_PRIME}/${HOME_TMP} 
       chmod 2775 ${CRAFT_PRIME}/opt/rsession.sh
         
-      # allows the non-root NB_USER to run rstudio
+      # allows the non-root _daemon_ to run rstudio
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/${HOME} 
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/${HOME_TMP} 
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
