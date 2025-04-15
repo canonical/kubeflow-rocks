@@ -1,0 +1,257 @@
+# Based on:
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/base/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/rstudio/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/rstudio-tidyverse/Dockerfile
+
+name: rstudio-tidyverse
+summary: An image for using tidyverse
+description: |
+  The tidyverse is an opinionated collection of R packages designed for data science. 
+  Tidyverse are installed in Conda environment, which is automatically activated.
+version: "v1.10.0"
+license: Apache-2.0
+base: ubuntu@22.04
+run-user: _daemon_
+
+platforms:
+  amd64:
+
+services:
+  rstudio-tidyverse:
+    override: replace
+    summary: "Rstudio Tidyverse service"
+    startup: enabled
+    environment:
+       NB_USER: "_daemon_"
+       NB_UID: "1000"
+       NB_GID: "0"
+       USERS_GID: "100"
+       CONDA_DIR: "/opt/conda"
+       HOME: "/home/jovyan"
+       HOME_TMP: "/tmp_home/jovyan"
+       USER: "_daemon_"
+       SHELL: "/bin/bash"
+       LANG: "en_US.UTF-8"
+       LANGUAGE: "en_US.UTF-8"
+       LC_ALL: "en_US.UTF-8"
+       PATH: "/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+       PYTHONPATH: "/opt/conda/lib/python3.11/site-packages/"
+       R_HOME: "/opt/conda/lib/R"
+       RS_LOG_LEVEL: "WARN"
+       RS_LOGGER_TYPE: "stderr"
+       XDG_RUNTIME_DIR: "/tmp/runtime-jovyan"
+    command: bash -c '/usr/lib/rstudio-server/bin/rserver --server-daemonize=0 --server-data-dir=/tmp/rstudio_runtime --server-working-dir=${HOME} --server-user=${NB_USER} --rsession-which-r=${R_HOME} --www-address=0.0.0.0 --www-port=8888 --auth-none=1 --rsession-path=/opt/rsession.sh --rsession-ld-library-path=/opt/conda/lib'
+    working-dir: /home/jovyan
+parts:
+  security-team-requirement:
+    plugin: nil
+    override-build: |
+      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
+      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && \
+      dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
+      > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
+
+  overlay-pkgs:
+    plugin: nil
+    overlay-packages:
+      - apt-transport-https
+      - bash
+      - bzip2
+      - ca-certificates
+      - curl
+      - git
+      - gnupg
+      - gnupg2
+      - locales
+      - lsb-release
+      - nano
+      - software-properties-common
+      - tzdata
+      - unzip
+      - vim
+      - wget
+      - xz-utils
+      - zip
+
+  kubectl:
+    plugin: nil
+    stage-snaps:
+      - kubectl/1.31/stable
+    organize:
+      kubectl: bin/kubectl
+    stage:
+      - bin/kubectl
+
+  generate-locale:
+    plugin: nil
+    build-packages:
+      - locales
+    override-build: |
+      echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
+      locale-gen
+      mkdir -p $CRAFT_PART_INSTALL/usr/lib/locale $CRAFT_PART_INSTALL/usr/share/i18n/locales
+      cp /usr/lib/locale/locale-archive $CRAFT_PART_INSTALL/usr/lib/locale/locale-archive
+      cp -r /usr/share/i18n/locales $CRAFT_PART_INSTALL/usr/share/i18n/locales
+
+  rstudio-tidyverse:
+    plugin: nil
+    source: https://github.com/kubeflow/kubeflow
+    source-type: git
+    source-tag: v1.10.0
+    build-packages:
+      - lsb-release
+      - wget
+      - dpkg-sig
+      - libapparmor1
+      - libc6
+      - libclang-dev
+      - libedit2
+      - libpq5
+      - libssl-dev
+      - psmisc
+      - rrdtool
+      - sudo
+    build-environment:
+      - S6_VERSION: "3.2.0.2"
+      - MINIFORGE_VERSION: "24.11.3-0"
+      - PIP_VERSION: "24.3.1"
+      - PYTHON_VERSION: "3.11.11"
+      - RSTUDIO_VERSION: "2024.12.1-563"
+      - R_BASE_VERSION: "4.4.2"
+      - R_PNG_VERSION: "0.1_8"
+      - R_RETICULATE_VERSION: "1.40.0"
+      - R_SHINY_VERSION: "1.10.0"
+      - CONDA_DIR: "/opt/conda"
+      - PATH: "${CONDA_DIR}/bin:${PATH}"
+      - R_HOME: "${CONDA_DIR}/lib/R"
+      - R_TIDYVERSE_VERSION: "2.0.0"
+      - RS_LOG_LEVEL: "WARN"
+      - RS_LOGGER_TYPE: "stderr"
+      - MINIFORGE_ARCH: "x86_64"
+      - HOME: "/home/jovyan"
+      - HOME_TMP: "/tmp_home/jovyan"
+      - SHELL: "/bin/bash"
+      - USERS_GID: "100"
+      - CONDA_DIR: "/opt/conda"
+      - CONDA_BIN: "/opt/conda/bin"
+      - RSTUDIO_DEB_URL: "https://s3.amazonaws.com/rstudio-ide-build/server/jammy/amd64/rstudio-server-${RSTUDIO_VERSION}-amd64.deb"
+      - GNUPGHOME: "$(mktemp -d)"
+      - MLFLOW_VERSION: "2.1.1"
+      - TZ: "Etc/UTC"
+    stage-packages:
+      - python3-distutils
+    override-build: |
+      # setup environment for conda
+      mkdir -p "$CONDA_DIR" "$HOME"
+      
+      # install - conda, pip, python
+      curl -fsSL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh" -o /tmp/Miniforge3.sh 
+      curl -fsSL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh.sha256" -o /tmp/Miniforge3.sh.sha256 
+      echo "$(cat /tmp/Miniforge3.sh.sha256 | awk '{ print $1; }')  /tmp/Miniforge3.sh" | sha256sum -c - 
+      rm /tmp/Miniforge3.sh.sha256 
+      /bin/sh /tmp/Miniforge3.sh -b -f -p "${CONDA_DIR}"
+      rm /tmp/Miniforge3.sh 
+      "${CONDA_BIN}/conda" config --system --set auto_update_conda false 
+      "${CONDA_BIN}/conda" config --system --set show_channel_urls true 
+      echo "python ==${PYTHON_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned 
+      "${CONDA_BIN}/conda" install -y -q \
+        python="${PYTHON_VERSION}" \
+        conda="${MINIFORGE_VERSION:0:-2}" \
+        pip="${PIP_VERSION}"           
+      "${CONDA_BIN}/conda" update -y -q --all 
+      "${CONDA_BIN}/conda" clean -a -f -y
+      
+      # install - r packages
+      echo "r-base ==${R_BASE_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned" 
+      "${CONDA_BIN}/conda" install -y -q \
+        r-base="${R_BASE_VERSION}" \
+        r-png="${R_PNG_VERSION}" \
+        r-reticulate="${R_RETICULATE_VERSION}" \
+        r-shiny="${R_SHINY_VERSION}"     
+      "${CONDA_BIN}/conda" clean -a -f -y
+      
+      # R needs TZ set
+      echo "TZ=${TZ}" >> "${R_HOME}/etc/Renviron.site"
+      
+      # install - rstudio-server
+      curl -fsSL "${RSTUDIO_DEB_URL}" -o /tmp/rstudio-server.deb 
+      
+      # validate the build signature
+      gpg --keyserver keys.gnupg.net --keyserver pgp.surfnet.nl --recv-keys 3F32EE77E331692F 
+      gpg --keyserver keys.openpgp.org --recv-keys 51C0B5BB19F92D60 
+      dpkg-sig --verify /tmp/rstudio-server.deb 
+      rm -rf "${GNUPGHOME}" 
+      
+      # install rstudio-server
+      dpkg -i /tmp/rstudio-server.deb 
+      rm -f /tmp/rstudio-server.deb 
+                      
+      # Install - r-tidyverse                  
+      "${CONDA_BIN}/conda" install -y -q \
+        r-tidyverse="${R_TIDYVERSE_VERSION}" 
+                      
+      # Clean                  
+      "${CONDA_BIN}/conda" clean -a -f -y      
+      
+      # Create some directories for staging files
+      mkdir -p "${CRAFT_PART_INSTALL}/${CONDA_DIR}" \
+      "${CRAFT_PART_INSTALL}/etc" \
+      "${CRAFT_PART_INSTALL}/run" \
+      "${CRAFT_PART_INSTALL}/${HOME}" \
+      "${CRAFT_PART_INSTALL}/${HOME_TMP}" 
+
+      # Write some config files for activating conda in user sessions
+      chmod 2775 "${CRAFT_PART_INSTALL}/${CONDA_DIR}"
+      echo ". /opt/conda/etc/profile.d/conda.sh" >> "${HOME}/.bashrc"
+      echo ". /opt/conda/etc/profile.d/conda.sh" >> "${CRAFT_PART_INSTALL}/etc/profile"
+      echo "conda activate base" >> "${HOME}/.bashrc"
+      
+      # Do some cleanup
+      rm -rf "${HOME}/.cache"
+
+      # Stage the directories
+      cp -r "${HOME}" "${CRAFT_PART_INSTALL}/home/jovyan"
+      cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt"
+      cp -r /etc/rstudio "${CRAFT_PART_INSTALL}/etc/rstudio"
+      cp -r /run/rstudio-server  "${CRAFT_PART_INSTALL}/run/rstudio-server" 
+      cp -r /usr/lib/rstudio-server  "${CRAFT_PART_INSTALL}/usr/lib/rstudio-server"
+      cp -r /var/lib/rstudio-server  "${CRAFT_PART_INSTALL}/var/lib/rstudio-server" 
+      cp "${R_HOME}/etc/Renviron.site" "${CRAFT_PART_INSTALL}/${R_HOME}/etc/Renviron.site"
+      cp "$CRAFT_PART_SRC/components/example-notebook-servers/rstudio/rsession.sh" "${CRAFT_PART_INSTALL}/opt"
+      
+      # Writing config files for rstudio
+      # the default DB path '/var/lib/rstudio-server' causes permission issues when running as a random UID (like in OpenShift)
+      echo "provider=sqlite" > "${CRAFT_PART_INSTALL}/etc/rstudio/database.conf"
+      echo "directory=/tmp/rstudio_db" >> "${CRAFT_PART_INSTALL}/etc/rstudio/database.conf"               
+      # use advisory file-locks to improve PVC support
+      echo "lock-type=advisory" > "${CRAFT_PART_INSTALL}/etc/rstudio/file-locks"             
+      # allow kubeflow to display rstudio in an iframe
+      echo "www-frame-origin=same" >> "${CRAFT_PART_INSTALL}/etc/rstudio/rserver.conf" 
+
+  non-root-user:
+    plugin: nil
+    after: [rstudio-tidyverse]
+    build-environment:
+      - HOME: "/home/jovyan"
+      - HOME_TMP: "/tmp_home/jovyan"
+      - NB_GID: "0"
+      - CONDA_DIR: "/opt/conda"
+      - R_HOME: "${CONDA_DIR}/lib/R"
+    override-prime: |
+      craftctl default
+        
+      chmod 2775 ${CRAFT_PRIME}/${HOME} 
+      chmod 2775 ${CRAFT_PRIME}/${HOME_TMP} 
+      chmod 2775 ${CRAFT_PRIME}/opt/rsession.sh
+        
+      # allows the non-root _daemon_ to run rstudio
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/${HOME} 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/${HOME_TMP} 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/${CONDA_DIR}
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/rsession.sh
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/${R_HOME} 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/etc/rstudio 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/run/rstudio-server* 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/usr/lib/rstudio-server 
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/var/lib/rstudio-server
