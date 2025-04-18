@@ -21,4 +21,5 @@ def test_rock():
     assert rock_services["codeserver-jupyter"]["startup"] == "enabled"
 
     # verify that artifacts are in correct locations
+    subprocess.run(["docker", "run", LOCAL_ROCK_IMAGE, "exec", "ls", "-ls", "/usr/bin/code-server"], check=True)
     subprocess.run(["docker", "run", LOCAL_ROCK_IMAGE, "exec", "ls", "-ls", "/opt/conda/bin/jupyter"], check=True)

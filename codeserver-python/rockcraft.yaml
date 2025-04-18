@@ -1,7 +1,7 @@
-#Based on the following Dockerfiles:
-# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/base/Dockerfile
-# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/codeserver/Dockerfile
-# https://github.com/kubeflow/kubeflow/blob/v1.10.0-rc.1/components/example-notebook-servers/codeserver-python/Dockerfile
+# Based on the following Dockerfiles:
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/base/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/codeserver/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/codeserver-python/Dockerfile
 name: codeserver-python
 summary: An image for using Codeserver & Jupyter on CPUs
 description: |
@@ -9,9 +9,9 @@ description: |
   in a user namespace, and enables users to perform CPU-accelerated tasks
   using PyTorch from within a Jupyter Notebook.
 
-  Both PyTorch and Jupyter are installed in Conda environment, which is
+  Both PyTorch and Jupyter are installed in a Conda environment, which is
   automatically activated.
-version: "1.10.0-rc.1"
+version: "1.10.0"
 license: Apache-2.0
 base: ubuntu@22.04
 run-user: _daemon_
@@ -21,23 +21,19 @@ services:
     override: replace
     summary: "codeserver-jupyter service"
     startup: enabled
-    command: bash -c '/usr/bin/code-server --bind-addr 0.0.0.0:8888 --disable-telemetry --disable-update-check --disable-workspace-trust --disable-getting-started-override --auth none --trusted-origins "*" ${HOME}'
+    command: bash -c 'cp -n -r -T ${HOME_TMP} ${HOME} && /usr/bin/code-server --bind-addr 0.0.0.0:8888 --disable-telemetry --disable-update-check --disable-workspace-trust --disable-getting-started-override --auth none --trusted-origins "*" ${HOME}'
     working-dir: /home/jovyan/
     environment:
-       NB_USER: jovyan
-       NB_UID: 1000
-       NB_GID: 0
-       NB_PREFIX: /
-       USERS_GID: 100
-       HOME: /home/jovyan
-       HOME_TMP: /tmp_home/jovyan
-       SHELL: /bin/bash
-       LANG: en_US.UTF-8
-       LANGUAGE: en_US.UTF-8
-       LC_ALL: en_US.UTF-8
-       PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-       PYTHONPATH: /opt/conda/lib/python3.11/site-packages/
-       XDG_RUNTIME_DIR: /tmp/runtime-${NB_USER}
+       USERS_GID: "100"
+       HOME: "/home/jovyan"
+       HOME_TMP: "/tmp_home/jovyan"
+       SHELL: "/bin/bash"
+       LANG: "en_US.UTF-8"
+       LANGUAGE: "en_US.UTF-8"
+       LC_ALL: "en_US.UTF-8"	
+       PATH: "/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+       PYTHONPATH: "/opt/conda/lib/python3.11/site-packages/"
+       XDG_RUNTIME_DIR: "/tmp/runtime-jovyan"
 platforms:
   amd64:
 
@@ -62,6 +58,7 @@ parts:
       - gnupg
       - gnupg2
       - locales
+      - libxml2
       - lsb-release
       - nano
       - software-properties-common
@@ -100,16 +97,16 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.10.0-rc.1
+    source-tag: v1.10.0
     build-packages:
       - lsb-release
       - wget
     build-environment:
       - HOME: "/home/jovyan"
-      - HOME_TMP: /tmp_home/jovyan
-      - NB_USER: jovyan
-      - NB_GID: 0
-      - CONDA_DIR: /opt/conda
+      - HOME_TMP: "/tmp_home/jovyan"
+      - NB_USER: "jovyan"
+      - NB_GID: "0"
+      - CONDA_DIR: "/opt/conda"
       - CONDA_BIN: "/opt/conda/bin"      
       - CODESERVER_VERSION: "4.96.4"
       - CODESERVER_PYTHON_VERSION: "2025.0.0"
@@ -121,11 +118,10 @@ parts:
       - PIP_VERSION: "24.3.1"
       - PYTHON_VERSION: "3.11.11"
       - PATH: "${CONDA_DIR}/bin:${PATH}"
-      - XDG_RUNTIME_DIR: /tmp/runtime-${NB_USER}
+      - XDG_RUNTIME_DIR: "/tmp/runtime-${NB_USER}"
     stage-packages:
       - python3-distutils
     override-build: |
-      set -xe
       mkdir -p "$CONDA_DIR" "$HOME"
       
       # install - code-server
@@ -147,13 +143,12 @@ parts:
       # Run the miniforge installer
       /bin/sh miniforge.sh -b -f -p "${CONDA_DIR}"
 
-
       # Configure conda
       "${CONDA_BIN}/conda" config --system --set auto_update_conda false
       "${CONDA_BIN}/conda" config --system --set show_channel_urls true
 
       echo "conda ${MINIFORGE_VERSION:0:-2}" >> "${CONDA_DIR}/conda-meta/pinned"
-      echo "python ==${PYTHON_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned"
+      echo "python==${PYTHON_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned"
 
       # Install the correct versions of python, conda, pip
       "${CONDA_BIN}/conda" install -y -q \
@@ -167,12 +162,11 @@ parts:
 
       # install - ipykernel
       # NOTE: we need this for jupyter codeserver extension to work
-      echo "ipykernel ==${IPYKERNEL_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned
+      echo "ipykernel==${IPYKERNEL_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned
       "${CONDA_BIN}/conda" install -y -q ipykernel==${IPYKERNEL_VERSION}
 
       # Clean up
       "${CONDA_BIN}/conda" clean -a -f -y
-
 
       # install - requirements.txt
       cp ${CRAFT_PART_SRC}/components/example-notebook-servers/codeserver-python/requirements.txt /tmp/requirements.txt
@@ -191,16 +185,16 @@ parts:
       "${CRAFT_PART_INSTALL}/etc" \
       "${CRAFT_PART_INSTALL}/${HOME}" \
       "${CRAFT_PART_INSTALL}/${HOME_TMP}" \
-      ${CRAFT_PART_INSTALL}/lib \
+      "${CRAFT_PART_INSTALL}/lib" \
       "${CRAFT_PART_INSTALL}/usr/bin" \
-      ${CRAFT_PART_INSTALL}/${XDG_RUNTIME_DIR}
+      "${CRAFT_PART_INSTALL}/${XDG_RUNTIME_DIR}"
 
       # Write some config files for activating conda in user sessions
       chmod 2775 ${CRAFT_PART_INSTALL}/${CONDA_DIR}
       echo ". /opt/conda/etc/profile.d/conda.sh" >> "${HOME}/.bashrc"
       echo ". /opt/conda/etc/profile.d/conda.sh" >> "${CRAFT_PART_INSTALL}/etc/profile"
       echo "conda activate base" >> "${HOME}/.bashrc"
-            echo "conda activate base" >> "${CRAFT_PART_INSTALL}/etc/profile"
+      echo "conda activate base" >> "${CRAFT_PART_INSTALL}/etc/profile"
 
       # Do some cleanup
       rm -rf "${HOME}/.wget-hsts" "${HOME}/.cache"
@@ -212,6 +206,7 @@ parts:
       ln -sf /lib/code-server/bin/code-server ${CRAFT_PART_INSTALL}/usr/bin/code-server
       cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt"      
       cp -r "${HOME}" "${CRAFT_PART_INSTALL}/home"
+      cp -r "${HOME}" "${CRAFT_PART_INSTALL}/tmp_home"
       
   # not-root user for this rock should be 'jovyan'
   non-root-user:
@@ -241,6 +236,8 @@ parts:
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
       mkdir -pv ${CRAFT_PRIME}/usr/local/etc/jupyter
+      mkdir -pv ${CRAFT_PRIME}/usr/local/bin
       chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
-
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/usr/local/bin
+      
       chmod 700 ${CRAFT_PRIME}/${XDG_RUNTIME_DIR}

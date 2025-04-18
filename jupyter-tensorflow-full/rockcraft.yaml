@@ -109,7 +109,6 @@ parts:
     stage-packages:
       - python3.8-distutils
     override-build: |
-      set -xe
       mkdir -p "${CONDA_DIR}" "${HOME}"
 
       # Download the miniforge installer
