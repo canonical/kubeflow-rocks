@@ -24,10 +24,6 @@ services:
     command: bash -c 'cp -n -r -T ${HOME_TMP} ${HOME} && /opt/conda/bin/jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser --allow-root --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.allow_remote_access=True --ServerApp.base_url=${NB_PREFIX} --ServerApp.authenticate_prometheus=False'
     working-dir: /home/jovyan/
     environment:
-       NB_USER: "jovyan"
-       NB_UID: "1000"
-       NB_GID: "0"
-       NB_PREFIX: "/"
        USERS_GID: "100"
        HOME: "/home/jovyan"
        HOME_TMP: "/tmp_home/jovyan"
