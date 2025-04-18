@@ -1,7 +1,7 @@
 # Based on the following Dockerfiles:
-# https://github.com/kubeflow/kubeflow/blob/v1.7-branch/components/example-notebook-servers/base/Dockerfile
-# https://github.com/kubeflow/kubeflow/blob/v1.7-branch/components/example-notebook-servers/jupyter/Dockerfile
-# https://github.com/kubeflow/kubeflow/blob/v1.7-branch/components/example-notebook-servers/jupyter-tensorflow-full/cpu.Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/base/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/jupyter/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/jupyter-tensorflow-full/Dockerfile
 name: jupyter-tensorflow-full
 summary: An image for using Jupyter & Tensorflow on CPUs
 description: |
@@ -11,28 +11,29 @@ description: |
 
   Both Tensorflow and Jupyter are installed in Conda environment, which is
   automatically activated.
-version: v1.7.0_20.04_1
+version: "1.10.0"
 license: Apache-2.0
-base: ubuntu:20.04
+base: ubuntu@22.04
 run-user: _daemon_
+
 services:
   jupyter:
     override: replace
     summary: "jupyter-tensorflow-full service"
     startup: enabled
+    command: bash -c 'cp -n -r -T ${HOME_TMP} ${HOME} && /opt/conda/bin/jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser --allow-root --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.allow_remote_access=True --ServerApp.base_url=${NB_PREFIX} --ServerApp.authenticate_prometheus=False'
+    working-dir: /home/jovyan/
     environment:
-      NB_USER: jovyan
-      NB_UID: 1001
-      NB_PREFIX: /
-      HOME: /home/jovyan
-      SHELL: /bin/bash
-      LANG: en_US.UTF-8
-      LANGUAGE: en_US.UTF-8
-      LC_ALL: en_US.UTF-8
-      PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-      PYTHONPATH: /opt/conda/lib/python3.8/site-packages/
-    command: ./jupyter lab --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url="/" --ServerApp.authenticate_prometheus=False
-    working-dir: /opt/conda/bin/
+       USERS_GID: "100"
+       HOME: "/home/jovyan"
+       HOME_TMP: "/tmp_home/jovyan"
+       SHELL: "/bin/bash"
+       LANG: "en_US.UTF-8"
+       LANGUAGE: "en_US.UTF-8"
+       LC_ALL: "en_US.UTF-8"
+       PATH: "/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+       PYTHONPATH: "/opt/conda/lib/python3.11/site-packages/"
+       JUPYTER_RUNTIME_DIR: "/tmp/jupyter_runtime"
 platforms:
   amd64:
 
@@ -64,12 +65,13 @@ parts:
       - unzip
       - vim
       - wget
+      - xz-utils
       - zip
 
   kubectl:
     plugin: nil
     stage-snaps:
-      - kubectl/1.24/stable
+      - kubectl/1.31/stable
     organize:
       kubectl: bin/kubectl
     stage:
@@ -94,23 +96,30 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.7-branch # upstream branch
+    source-tag: v1.10.0
     build-packages:
       - lsb-release
       - wget
     build-environment:
       - MINIFORGE_ARCH: "x86_64"
-      - MINIFORGE_VERSION: "4.10.1-4"
-      - PIP_VERSION: "21.1.2"
-      - PYTHON_VERSION: "3.8.10"
+      - MINIFORGE_VERSION: "24.11.3-0"
+      - PIP_VERSION: "24.3.1"
+      - PYTHON_VERSION: "3.11.11"
       - HOME: "/home/jovyan"
+      - HOME_TMP: "/tmp_home/jovyan"
+      - NB_USER: "jovyan"
+      - NB_GID: "0"
       - CONDA_DIR: "/opt/conda"
       - CONDA_BIN: "/opt/conda/bin"
+      - JUPYTERLAB_VERSION: "4.3.5"
+      - JUPYTER_VERSION: "7.3.2"
+      - TENSORFLOW_VERSION: "2.17.1"
+      - MAMBA_ROOT_PREFIX: "/opt/conda"
     stage-packages:
-      - python3.8-distutils
+      - python3-distutils
     override-build: |
       set -xe
-      mkdir -p "${CONDA_DIR}" "${HOME}"
+      mkdir -p "$CONDA_DIR" "$HOME"
 
       # Download the miniforge installer
       wget -qO miniforge.sh \
@@ -130,59 +139,102 @@ parts:
       "${CONDA_BIN}/conda" config --system --set auto_update_conda false
       "${CONDA_BIN}/conda" config --system --set show_channel_urls true
 
-      echo "conda ${MINIFORGE_VERSION:0:-2}" >> "${CONDA_DIR}/conda-meta/pinned"
-      echo "python ${PYTHON_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned"
+      echo "conda ${MINIFORGE_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned"
+      echo "python ==${PYTHON_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned"
 
       # Install the correct versions of python, conda, pip
       "${CONDA_BIN}/conda" install -y -q \
                           python="${PYTHON_VERSION}" \
-                          conda="${MINIFORGE_VERSION:0:-2}" \
+                          conda="${MINIFORGE_VERSION}" \
                           pip="${PIP_VERSION}"
-
       # Clean up
       "${CONDA_BIN}/conda" update -y -q --all
       "${CONDA_BIN}/conda" clean -a -f -y
 
       # Install the jupyter python requirements
-      cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter/requirements.txt jupyter-requirements.txt
-      "${CONDA_BIN}/pip" install --no-cache-dir -r jupyter-requirements.txt
+      echo "jupyterlab ==${JUPYTERLAB_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned
+      echo "notebook ==${JUPYTER_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned
+      "${CONDA_BIN}/conda" install -y -q --solver=classic \
+        jupyterlab==${JUPYTERLAB_VERSION} \
+        notebook==${JUPYTER_VERSION}
+      "${CONDA_BIN}/conda" clean -a -f -y
 
-      # Generate a jupyter lab config
-      "${CONDA_BIN}/jupyter" lab --generate-config
+      cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter/requirements.txt /tmp/jupyter-requirements.txt
+      "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/jupyter-requirements.txt
+      rm -f /tmp/requirements.txt
 
-      # Install the jupyter-tensorflow cpu requirements
-      cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter-tensorflow/cpu-requirements.txt cpu-requirements.txt
-      "${CONDA_BIN}/pip" install --no-cache-dir -r cpu-requirements.txt
+      # configure - jupyter
+      "${CONDA_BIN}/jupyter" labextension disable --level=system "@jupyterlab/apputils-extension:announcements" 
+      "${CONDA_BIN}/jupyter" labextension lock --level=system "@jupyterlab/apputils-extension"
 
-      # Install the jupyter-tensorflow-full cpu requirements
-      cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter-tensorflow-full/requirements.txt requirements.txt
-      "${CONDA_BIN}/pip" install --no-cache-dir -r requirements.txt
+      # Install the jupyter-tensorflow requirements
+      "${CONDA_BIN}/pip" install --quiet --no-cache-dir \
+        tensorflow==${TENSORFLOW_VERSION}
+
+      cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter-tensorflow/requirements.txt /tmp/requirements.txt
+      "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/jupyter-requirements.txt
+      rm -f /tmp/requirements.txt      
+
+      # Install the jupyter-tensorflow-full requirements
+      "${CONDA_BIN}/mamba" install -y -q \
+        bokeh==3.6.3 \
+        cloudpickle==3.1.1 \
+        dill==0.3.9 \
+        ipympl==0.9.6 \
+        matplotlib==3.10.0 \
+        numpy==1.26.4 \
+        pandas==2.2.3 \
+        scikit-image==0.25.1 \
+        scikit-learn==1.6.1 \
+        scipy==1.15.1 \
+        seaborn==0.13.2 \
+        xgboost==2.1.4 \
+
+      "${CONDA_BIN}/mamba" clean -a -f -y
+      
+      cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-tensorflow-full/requirements.txt /tmp/requirements.txt
+      "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/requirements.txt
+      rm -f /tmp/requirements.txt
 
       # Create some directories for staging files
-      mkdir -p "${CRAFT_PART_INSTALL}/opt" "${CRAFT_PART_INSTALL}/etc" "${CRAFT_PART_INSTALL}/home"
+      mkdir -p "${CRAFT_PART_INSTALL}/${CONDA_DIR}" \
+      "${CRAFT_PART_INSTALL}/etc" \
+      "${CRAFT_PART_INSTALL}/${HOME}" \
+      "${CRAFT_PART_INSTALL}/${HOME_TMP}" \
 
       # Write some config files for activating conda in user sessions
+      chmod 2775 ${CRAFT_PART_INSTALL}/${CONDA_DIR}
       echo ". /opt/conda/etc/profile.d/conda.sh" >> "${HOME}/.bashrc"
       echo ". /opt/conda/etc/profile.d/conda.sh" >> "${CRAFT_PART_INSTALL}/etc/profile"
       echo "conda activate base" >> "${HOME}/.bashrc"
-      echo "conda activate base" >> "${CRAFT_PART_INSTALL}/etc/profile"
+            echo "conda activate base" >> "${CRAFT_PART_INSTALL}/etc/profile"
 
       # Do some cleanup
       rm -rf "${HOME}/.wget-hsts" "${HOME}/.cache"
 
       # Stage the conda directories
-      cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt/conda"
-      cp -r "${HOME}" "${CRAFT_PART_INSTALL}/${HOME}"
-
+      cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt"
+      cp -r "${HOME}" "${CRAFT_PART_INSTALL}/home"
+      cp -r "${HOME}" "${CRAFT_PART_INSTALL}/tmp_home"
+      
   # not-root user for this rock should be 'jovyan'
   non-root-user:
     plugin: nil
     after: [conda-jupyter]
-    overlay-script: |
-      # Create a user in the $CRAFT_OVERLAY chroot
-      useradd -R $CRAFT_OVERLAY -M -s /bin/bash -N -u 1001 jovyan
+    build-environment:
+    - HOME: "/home/jovyan"
+    - NB_UID: "1000"
+    - NB_USER: "jovyan"
+    - NB_GID: "0"
+    - USERS_GID: "100"
     override-prime: |
       craftctl default
-      chown -R 584792:users home/jovyan
-      chown -R 584792:users bin
-      chown -R 584792:users opt/conda
+      chmod 2775 ${CRAFT_PRIME}/home/${NB_USER}
+      chmod 2775 ${CRAFT_PRIME}/tmp_home/${NB_USER}
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/${NB_USER}
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
+      mkdir -pv ${CRAFT_PRIME}/usr/local/etc/jupyter
+      mkdir -pv ${CRAFT_PRIME}/usr/local/bin
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/usr/local/bin
