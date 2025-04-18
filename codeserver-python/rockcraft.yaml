@@ -30,7 +30,7 @@ services:
        SHELL: "/bin/bash"
        LANG: "en_US.UTF-8"
        LANGUAGE: "en_US.UTF-8"
-       LC_ALL: "en_US.UTF-8"	
+       LC_ALL: "en_US.UTF-8"
        PATH: "/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
        PYTHONPATH: "/opt/conda/lib/python3.11/site-packages/"
        XDG_RUNTIME_DIR: "/tmp/runtime-jovyan"
