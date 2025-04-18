@@ -218,20 +218,12 @@ parts:
     - NB_GID: 0
     - USERS_GID: 100
     - XDG_RUNTIME_DIR: /tmp/runtime-${NB_USER}
-    overlay-script: |
-      # Create a user in the $CRAFT_OVERLAY chroot
-      useradd -R ${CRAFT_OVERLAY} \
-      --shell /bin/bash \
-      --home ${HOME} \
-      --uid ${NB_UID} \
-      --gid ${NB_GID} \
-      --groups ${USERS_GID} \
-      ${NB_USER}
     override-prime: |
       craftctl default
       chmod 2775 ${CRAFT_PRIME}/home/${NB_USER}
       chmod 2775 ${CRAFT_PRIME}/tmp_home/${NB_USER}
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/${NB_USER}
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/tmp_home/${NB_USER}
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
       mkdir -pv ${CRAFT_PRIME}/usr/local/etc/jupyter
