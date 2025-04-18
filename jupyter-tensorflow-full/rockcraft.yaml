@@ -96,7 +96,7 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.10.0-rc.1
+    source-tag: v1.10.0
     build-packages:
       - lsb-release
       - wget
