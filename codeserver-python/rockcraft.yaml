@@ -58,7 +58,6 @@ parts:
       - gnupg
       - gnupg2
       - locales
-      - libxml2
       - lsb-release
       - nano
       - software-properties-common
@@ -163,7 +162,7 @@ parts:
       # install - ipykernel
       # NOTE: we need this for jupyter codeserver extension to work
       echo "ipykernel==${IPYKERNEL_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned
-      "${CONDA_BIN}/conda" install -y -q ipykernel==${IPYKERNEL_VERSION}
+      "${CONDA_BIN}/conda" install -y -q --solver=classic ipykernel==${IPYKERNEL_VERSION}
 
       # Clean up
       "${CONDA_BIN}/conda" clean -a -f -y
