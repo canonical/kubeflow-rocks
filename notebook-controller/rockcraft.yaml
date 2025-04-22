@@ -1,10 +1,10 @@
-# Source https://github.com/kubeflow/kubeflow/blob/v1.9.0/components/notebook-controller/Dockerfile
+# Source https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/notebook-controller/Dockerfile
 name: notebook-controller
 summary: An image for Jupyter notebook controller
 description: |
   This image is used as part of the Charmed Kubeflow product. The controller allows users to
   create a custom resource "Notebook" (jupyter notebook).
-version: "1.9.0"
+version: "1.10.0"
 license: Apache-2.0
 base: ubuntu@22.04
 services:
@@ -30,14 +30,14 @@ parts:
     plugin: go
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.9.0
+    source-tag: v1.10.0
     build-snaps:
       - go/1.17/stable
     build-packages:
       - apt
       - bash
     build-environment:
-      - CGO_ENABLED: 0
+      - CGO_ENABLED: "0"
       - GOOS: linux
     stage-packages:
       - bash

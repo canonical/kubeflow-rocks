@@ -1,3 +1,8 @@
+# Based on the following Dockerfiles:
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/base/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/jupyter/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/jupyter-pytorch/Dockerfile
+# https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/example-notebook-servers/jupyter-pytorch-full/Dockerfile
 name: jupyter-pytorch-full
 summary: An image for using Jupyter & PyTorch on CPUs
 description: |
@@ -7,28 +12,33 @@ description: |
 
   Both PyTorch and Jupyter are installed in Conda environment, which is
   automatically activated.
-version: "1.8.0"
+version: "v1.10.0"
 license: Apache-2.0
-base: ubuntu@20.04
+base: ubuntu@22.04
 run-user: _daemon_
+
 services:
   jupyter:
     override: replace
     summary: "jupyter-pytorch-full service"
     startup: enabled
+    command: bash -c '/opt/conda/bin/jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser --allow-root --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.allow_remote_access=True --ServerApp.base_url=${NB_PREFIX} --ServerApp.authenticate_prometheus=False'
+    working-dir: /home/jovyan/
     environment:
        NB_USER: jovyan
-       NB_UID: 1001
+       NB_UID: 1000
+       NB_GID: 0
        NB_PREFIX: /
+       USERS_GID: 100
        HOME: /home/jovyan
+       HOME_TMP: /tmp_home/jovyan
        SHELL: /bin/bash
        LANG: en_US.UTF-8
        LANGUAGE: en_US.UTF-8
        LC_ALL: en_US.UTF-8
        PATH: /opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
        PYTHONPATH: /opt/conda/lib/python3.11/site-packages/
-    command: ./jupyter lab --notebook-dir="/home/jovyan" --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.base_url="/" --ServerApp.authenticate_prometheus="False"
-    working-dir: /opt/conda/bin/
+       JUPYTER_RUNTIME_DIR: /tmp/jupyter_runtime
 platforms:
   amd64:
 
@@ -43,7 +53,6 @@ parts:
 
   overlay-pkgs:
     plugin: nil
-    # These were taken from the upstream base image. They *may not* all be required.
     overlay-packages:
       - apt-transport-https
       - bash
@@ -67,7 +76,7 @@ parts:
   kubectl:
     plugin: nil
     stage-snaps:
-      - kubectl/1.27/stable
+      - kubectl/1.31/stable
     organize:
       kubectl: bin/kubectl
     stage:
@@ -92,23 +101,27 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.8-branch # upstream branch
+    source-tag: v1.10.0
     build-packages:
       - lsb-release
       - wget
     build-environment:
       - MINIFORGE_ARCH: "x86_64"
-      - MINIFORGE_VERSION: "23.3.1-1"
-      - PIP_VERSION: "23.2.1"
-      - PYTHON_VERSION: "3.11.6"
+      - MINIFORGE_VERSION: "24.7.1-2"
+      - PIP_VERSION: "24.2"
+      - PYTHON_VERSION: "3.11.10"
       - HOME: "/home/jovyan"
+      - HOME_TMP: /tmp_home/jovyan
+      - NB_USER: jovyan
+      - NB_GID: 0
       - CONDA_DIR: "/opt/conda"
       - CONDA_BIN: "/opt/conda/bin"
-      - JUPYTERLAB_VERSION: "3.6.6"
-      - JUPYTER_VERSION: "6.5.6"
-      - PYTORCH_VERSION: "2.1.0"
-      - TORCHAUDIO_VERSION: "2.1.0"
-      - TORCHVISION_VERSION: "0.16.0"
+      - JUPYTERLAB_VERSION: "4.2.5"
+      - JUPYTER_VERSION: "7.2.2"
+      - PYTORCH_VERSION: "2.3.1"
+      - TORCHAUDIO_VERSION: "2.3.1"
+      - TORCHVISION_VERSION: "0.18.1"
+      - MAMBA_ROOT_PREFIX: "/opt/conda"
       - MLFLOW_VERSION: "2.1.1"
     stage-packages:
       - python3-distutils
@@ -153,68 +166,91 @@ parts:
       "${CONDA_BIN}/conda" install -y -q \
         jupyterlab==${JUPYTERLAB_VERSION} \
         notebook==${JUPYTER_VERSION}
-      cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter/requirements.txt jupyter-requirements.txt
-      "${CONDA_BIN}/pip" install --no-cache-dir -r jupyter-requirements.txt
 
-      # Generate a jupyter lab config
-      "${CONDA_BIN}/jupyter" notebook --generate-config
-      "${CONDA_BIN}/jupyter" lab --generate-config
-      "${CONDA_BIN}/jupyter" labextension disable "@jupyterlab/apputils-extension:announcements"
+      cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter/requirements.txt /tmp/jupyter-requirements.txt
+      "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/jupyter-requirements.txt
+      rm -f /tmp/requirements.txt
+
+      # configure - jupyter
+      "${CONDA_BIN}/jupyter" labextension disable --level=system "@jupyterlab/apputils-extension:announcements" 
+      "${CONDA_BIN}/jupyter" labextension lock --level=system "@jupyterlab/apputils-extension"
 
       # Install the jupyter-pytorch requirements
       "${CONDA_BIN}/pip" install --quiet --no-cache-dir --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple \
         torch==${PYTORCH_VERSION} \
         torchvision==${TORCHVISION_VERSION} \
         torchaudio==${TORCHAUDIO_VERSION}
-      cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-pytorch/requirements.txt requirements.txt
-      "${CONDA_BIN}/pip" install --no-cache-dir -r requirements.txt
 
       # Install the jupyter-pytorch-full requirements
       "${CONDA_BIN}/mamba" install -y -q \
-        bokeh==3.2.2 \
+        bokeh==3.3.4 \
         cloudpickle==2.2.1 \
-        dill==0.3.7 \
-        ipympl==0.9.3 \
-        matplotlib==3.8.0 \
-        pandas==2.1.1 \
+        dill==0.3.8 \
+        ipympl==0.9.4 \
+        matplotlib==3.8.4 \
+        numpy==1.24.4 \
+        pandas==2.1.4 \
         scikit-image==0.22.0 \
-        scikit-learn==1.3.1 \
+        scikit-learn==1.3.2 \
         scipy==1.11.3 \
-        seaborn==0.13.0 \
+        seaborn==0.13.2 \
         xgboost==1.7.6
-      cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-pytorch-full/requirements.txt requirements.txt
-      "${CONDA_BIN}/pip" install --no-cache-dir -r requirements.txt
+
+      "${CONDA_BIN}/mamba" clean -a -f -y
+      
+      cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-pytorch-full/requirements.txt /tmp/requirements.txt
+      "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/requirements.txt
+      rm -f /tmp/requirements.txt
 
       # Install mlflow so we can use this with mlflow https://github.com/canonical/data-science-stack/issues/47#issuecomment-2004136344
       "${CONDA_BIN}/pip" install --quiet --no-cache-dir \
         mlflow==${MLFLOW_VERSION}
 
       # Create some directories for staging files
-      mkdir -p "${CRAFT_PART_INSTALL}/opt" "${CRAFT_PART_INSTALL}/etc" "${CRAFT_PART_INSTALL}/home"
+      mkdir -p "${CRAFT_PART_INSTALL}/${CONDA_DIR}" \
+      "${CRAFT_PART_INSTALL}/etc" \
+      "${CRAFT_PART_INSTALL}/${HOME}" \
+      "${CRAFT_PART_INSTALL}/${HOME_TMP}" \
 
       # Write some config files for activating conda in user sessions
+      chmod 2775 ${CRAFT_PART_INSTALL}/${CONDA_DIR}
       echo ". /opt/conda/etc/profile.d/conda.sh" >> "${HOME}/.bashrc"
       echo ". /opt/conda/etc/profile.d/conda.sh" >> "${CRAFT_PART_INSTALL}/etc/profile"
       echo "conda activate base" >> "${HOME}/.bashrc"
-      echo "conda activate base" >> "${CRAFT_PART_INSTALL}/etc/profile"
+            echo "conda activate base" >> "${CRAFT_PART_INSTALL}/etc/profile"
 
       # Do some cleanup
       rm -rf "${HOME}/.wget-hsts" "${HOME}/.cache"
 
       # Stage the conda directories
-      cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt/conda"
-      cp -r "${HOME}" "${CRAFT_PART_INSTALL}/${HOME}"
-
+      cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt"
+      cp -r "${HOME}" "${CRAFT_PART_INSTALL}/home"
+      
   # not-root user for this rock should be 'jovyan'
   non-root-user:
     plugin: nil
     after: [conda-jupyter]
+    build-environment:
+    - HOME: /home/jovyan
+    - NB_UID: 1000
+    - NB_USER: jovyan
+    - NB_GID: 0
+    - USERS_GID: 100
     overlay-script: |
       # Create a user in the $CRAFT_OVERLAY chroot
-      useradd -R $CRAFT_OVERLAY -M -s /bin/bash -N -u 1001 jovyan
+      useradd -R ${CRAFT_OVERLAY} \
+      --shell /bin/bash \
+      --home ${HOME} \
+      --uid ${NB_UID} \
+      --gid ${NB_GID} \
+      --groups ${USERS_GID} \
+      ${NB_USER}
     override-prime: |
       craftctl default
-      chown -R 584792:users home/jovyan
-      chown -R 584792:users bin
-      chown -R 584792:users opt/conda
-
+      chmod 2775 ${CRAFT_PRIME}/home/${NB_USER}
+      chmod 2775 ${CRAFT_PRIME}/tmp_home/${NB_USER}
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/${NB_USER}
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
+      mkdir -pv ${CRAFT_PRIME}/usr/local/etc/jupyter
+      chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter

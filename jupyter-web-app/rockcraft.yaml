@@ -1,10 +1,10 @@
-# Based on https://github.com/kubeflow/kubeflow/blob/v1.9.0/components/crud-web-apps/jupyter/Dockerfile
+# Based on https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/crud-web-apps/jupyter/Dockerfile
 name: jupyter-web-app
 summary: An image for Jupyter UI
 description: |
   This image is used as part of Charmed Kubeflow product. Jupyter UI web application provides
   users with web UI to access and manipulate Jupyter Notebooks in Charmed Kubeflow.
-version: "1.9.0"
+version: "1.10.0"
 license: Apache-2.0
 base: ubuntu@22.04
 platforms:
@@ -25,7 +25,7 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.9.0
+    source-tag: v1.10.0
     source-depth: 1
     build-packages:
       - python3-venv
@@ -47,10 +47,10 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.9.0
+    source-tag: v1.10.0
     source-depth: 1
     build-snaps:
-      - node/12/stable
+      - node/16/stable
     build-environment:
       - NG_CLI_ANALYTICS: "ci"
     override-build: |
@@ -69,10 +69,10 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.9.0
+    source-tag: v1.10.0
     source-depth: 1
     build-snaps:
-      - node/12/stable
+      - node/16/stable
     build-environment:
       - NG_CLI_ANALYTICS: "ci"
     override-build: |
@@ -94,7 +94,7 @@ parts:
   gunicorn:
     plugin: python
     source: https://github.com/kubeflow/kubeflow.git
-    source-tag: v1.9.0
+    source-tag: v1.10.0
     source-depth: 1
     python-requirements:
     - components/crud-web-apps/jupyter/backend/requirements.txt
@@ -106,7 +106,7 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/kubeflow
     source-type: git
-    source-tag: v1.9.0
+    source-tag: v1.10.0
     source-depth: 1
     build-packages:
       - python3-venv
