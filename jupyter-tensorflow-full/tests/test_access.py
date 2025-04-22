@@ -3,32 +3,35 @@
 # See LICENSE file for licensing details.
 #
 #
-from pathlib import Path
-
-import os
 import subprocess
-import time
-import yaml
+import requests
+import tenacity
 
+from charmed_kubeflow_chisme.rock import CheckRock
+
+@tenacity.retry(
+stop=tenacity.stop_after_attempt(5),
+wait=tenacity.wait_fixed(2)
+)
+def check_notebook_server_up(url):
+    response = requests.get(url)
+    response.raise_for_status() # Raise an exception if the request was unsuccessful
+    return response.text
 
 def main():
     """Test running container and imports."""
-    rock = yaml.safe_load(Path("rockcraft.yaml").read_text())
-    name = rock["name"]
-    rock_version = rock["version"]
-    arch = list(rock["platforms"].keys())[0]
-    rock_image = f"{name}_{rock_version}_{arch}"
+    check_rock = CheckRock("rockcraft.yaml")
+    rock_image = check_rock.get_name()
+    rock_version = check_rock.get_version()
     LOCAL_ROCK_IMAGE = f"{rock_image}:{rock_version}"
     
     print(f"Running {LOCAL_ROCK_IMAGE}")
     container_id = subprocess.run(["docker", "run", "-d", "-p", "8888:8888", LOCAL_ROCK_IMAGE], stdout=subprocess.PIPE).stdout.decode('utf-8')
     container_id = container_id[0:12]
 
-    # to ensure container is started
-    time.sleep(5)
+    # Try to reach the notebook server
+    output = check_notebook_server_up("http://0.0.0.0:8888/lab")
 
-    # retrieve notebook server URL
-    output = subprocess.run(["curl", "http://127.0.0.1:8888/lab"], stdout=subprocess.PIPE).stdout.decode('utf-8')
     # cleanup
     subprocess.run(["docker", "stop", f"{container_id}"])
     subprocess.run(["docker", "rm", f"{container_id}"])
