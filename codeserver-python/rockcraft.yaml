@@ -231,4 +231,4 @@ parts:
       chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/usr/local/bin
       
-      chmod 700 ${CRAFT_PRIME}/${XDG_RUNTIME_DIR}
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/${XDG_RUNTIME_DIR}
