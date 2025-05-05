@@ -35,7 +35,7 @@ parts:
     source-type: git
     source-tag: v1.10.0 # upstream branch
     build-snaps:
-      - node/16/stable
+      - node/16/stable # comment build rock
     build-packages:
       - bash
       - chromium-browser

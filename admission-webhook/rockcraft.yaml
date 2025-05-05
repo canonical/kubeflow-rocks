@@ -32,6 +32,7 @@ parts:
   # /bin/admission-webhook, which is undesirable as it is expected to be in /webhook.
   # The go plugin does not offer any mechanism for passing custom install paths, so we have
   # to use override-build instead to make sure the binary is placed in the expected path.
+  # build rock
   admission-webhook:
     plugin: go
     build-snaps:
