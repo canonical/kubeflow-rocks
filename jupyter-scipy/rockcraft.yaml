@@ -143,6 +143,7 @@ parts:
       - CONDA_BIN: "/opt/conda/bin"
       - MAMBA_ROOT_PREFIX: "/opt/conda"
       - MLFLOW_VERSION: "2.15.1"  # Latest mlflow version we support https://github.com/canonical/mlflow-operator/blob/main/metadata.yaml#L18
+      - FEAST_VERSION: "0.49.0"  # Latest feast version we support https://github.com/canonical/feast-rocks/blob/main/feast-ui/rockcraft.yaml#L35
     stage-packages:
       - python3.11-distutils
     override-build: |
@@ -234,7 +235,12 @@ parts:
 
       # Install mlflow so we can use this with mlflow https://github.com/canonical/data-science-stack/issues/47#issuecomment-2004136344
       "${CONDA_BIN}/pip" install --quiet --no-cache-dir \
-        mlflow==${MLFLOW_VERSION}
+        mlflow==${MLFLOW_VERSION} 
+
+      # Install feast dependencies so we can use it https://github.com/canonical/kubeflow-rocks/issues/208
+      "${CONDA_BIN}/pip" install --quiet --no-cache-dir \
+        feast[postgres]==${FEAST_VERSION} \
+        protobuf==6.30.2 \
       
       # Fixes the problem with pipy extension not loading in the jupyter
       "${CONDA_BIN}/pip" install httpx==0.23.0
