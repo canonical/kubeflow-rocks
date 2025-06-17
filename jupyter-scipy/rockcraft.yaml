@@ -238,6 +238,7 @@ parts:
         mlflow==${MLFLOW_VERSION} 
 
       # Install feast dependencies so we can use it https://github.com/canonical/kubeflow-rocks/issues/208
+      # protobuf fix for https://github.com/feast-dev/feast/issues/5457
       "${CONDA_BIN}/pip" install --quiet --no-cache-dir \
         feast[postgres]==${FEAST_VERSION} \
         protobuf==6.30.2 \
