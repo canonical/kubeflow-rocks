@@ -40,6 +40,9 @@ import sklearn  # scikit-learn
 # MLflow package
 import mlflow
 
+# Feast package
+import feast
+
 # OpenBLAS (Note: OpenBLAS itself is a C library, but NumPy uses it)
 import numpy as np
 import scipy.linalg  # Ensures OpenBLAS is properly linked
