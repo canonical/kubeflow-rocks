@@ -2,5 +2,5 @@ integrations:
   - consumer-repository: https://github.com/canonical/kubeflow-tensorboards-operator.git
 
     replace-image:
-      - file: metadata.yaml
+      - file: charms/tensorboards-web-app/metadata.yaml
         path: resources.tensorboards-web-app-image.upstream-source
