@@ -3,4 +3,4 @@ integrations:
 
     replace-image:
       - file: charms/jupyter-ui/src/default-jupyter-images.yaml
-        path: "[5]"
+        path: "[4]"
