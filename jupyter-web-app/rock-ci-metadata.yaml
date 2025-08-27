@@ -1,5 +1,5 @@
 integrations:
-  - consumer-repository: https://github.com/canonical/notebooks-operators.git
+  - consumer-repository: https://github.com/canonical/notebook-operators.git
 
     replace-image:
       - file: charms/jupyter-ui/metadata.yaml
