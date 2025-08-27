@@ -26,10 +26,9 @@ services:
     working-dir: /home/jovyan/
     environment:
        NB_USER: jovyan
-       NB_UID: 1000
-       NB_GID: 0
-       NB_PREFIX: /
-       USERS_GID: 100
+       NB_UID: "1000"
+       NB_GID: "0"
+       USERS_GID: "100"
        HOME: /home/jovyan
        HOME_TMP: /tmp_home/jovyan
        SHELL: /bin/bash
@@ -113,7 +112,7 @@ parts:
       - HOME: "/home/jovyan"
       - HOME_TMP: /tmp_home/jovyan
       - NB_USER: jovyan
-      - NB_GID: 0
+      - NB_GID: "0"
       - CONDA_DIR: "/opt/conda"
       - CONDA_BIN: "/opt/conda/bin"
       - JUPYTERLAB_VERSION: "4.2.5"
@@ -122,7 +121,7 @@ parts:
       - TORCHAUDIO_VERSION: "2.3.1"
       - TORCHVISION_VERSION: "0.18.1"
       - MAMBA_ROOT_PREFIX: "/opt/conda"
-      - MLFLOW_VERSION: "2.1.1"
+      - MLFLOW_VERSION: "2.22.1"
     stage-packages:
       - python3-distutils
     override-build: |
@@ -172,7 +171,7 @@ parts:
       rm -f /tmp/requirements.txt
 
       # configure - jupyter
-      "${CONDA_BIN}/jupyter" labextension disable --level=system "@jupyterlab/apputils-extension:announcements" 
+      "${CONDA_BIN}/jupyter" labextension disable --level=system "@jupyterlab/apputils-extension:announcements"
       "${CONDA_BIN}/jupyter" labextension lock --level=system "@jupyterlab/apputils-extension"
 
       # Install the jupyter-pytorch requirements
@@ -197,7 +196,7 @@ parts:
         xgboost==1.7.6
 
       "${CONDA_BIN}/mamba" clean -a -f -y
-      
+
       cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-pytorch-full/requirements.txt /tmp/requirements.txt
       "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/requirements.txt
       rm -f /tmp/requirements.txt
@@ -225,17 +224,17 @@ parts:
       # Stage the conda directories
       cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt"
       cp -r "${HOME}" "${CRAFT_PART_INSTALL}/home"
-      
+
   # not-root user for this rock should be 'jovyan'
   non-root-user:
     plugin: nil
     after: [conda-jupyter]
     build-environment:
     - HOME: /home/jovyan
-    - NB_UID: 1000
+    - NB_UID: "1000"
     - NB_USER: jovyan
-    - NB_GID: 0
-    - USERS_GID: 100
+    - NB_GID: "0"
+    - USERS_GID: "100"
     overlay-script: |
       # Create a user in the $CRAFT_OVERLAY chroot
       useradd -R ${CRAFT_OVERLAY} \
