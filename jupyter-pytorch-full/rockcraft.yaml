@@ -112,7 +112,7 @@ parts:
       - HOME: "/home/jovyan"
       - HOME_TMP: /tmp_home/jovyan
       - NB_USER: jovyan
-      - NB_GID: 0
+      - NB_GID: "0"
       - CONDA_DIR: "/opt/conda"
       - CONDA_BIN: "/opt/conda/bin"
       - JUPYTERLAB_VERSION: "4.2.5"
@@ -121,7 +121,7 @@ parts:
       - TORCHAUDIO_VERSION: "2.3.1"
       - TORCHVISION_VERSION: "0.18.1"
       - MAMBA_ROOT_PREFIX: "/opt/conda"
-      - MLFLOW_VERSION: "2.1.1"
+      - MLFLOW_VERSION: "2.22.1"
     stage-packages:
       - python3-distutils
     override-build: |
