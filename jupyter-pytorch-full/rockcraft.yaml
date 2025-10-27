@@ -95,6 +95,7 @@ parts:
       - CONDA_BIN: "/opt/conda/bin"
       - JUPYTERLAB_VERSION: "4.2.5"
       - JUPYTER_VERSION: "7.2.2"
+      # Following 3 envs diverge from upstream in order to fix CVEs
       - PYTORCH_VERSION: "2.9.0"
       - TORCHAUDIO_VERSION: "2.9.0"
       - TORCHVISION_VERSION: "0.24.0"
