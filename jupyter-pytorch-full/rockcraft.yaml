@@ -50,28 +50,6 @@ parts:
       dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
       > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
 
-  overlay-pkgs:
-    plugin: nil
-    overlay-packages:
-      - apt-transport-https
-      - bash
-      - bzip2
-      - ca-certificates
-      - curl
-      - git
-      - gnupg
-      - gnupg2
-      - locales
-      - lsb-release
-      - nano
-      - software-properties-common
-      - tzdata
-      - unzip
-      - vim
-      - wget
-      - xz-utils
-      - zip
-
   kubectl:
     plugin: nil
     stage-snaps:
@@ -117,12 +95,31 @@ parts:
       - CONDA_BIN: "/opt/conda/bin"
       - JUPYTERLAB_VERSION: "4.2.5"
       - JUPYTER_VERSION: "7.2.2"
-      - PYTORCH_VERSION: "2.3.1"
-      - TORCHAUDIO_VERSION: "2.3.1"
-      - TORCHVISION_VERSION: "0.18.1"
+      # Following 3 envs diverge from upstream in order to fix CVEs
+      - PYTORCH_VERSION: "2.9.0"
+      - TORCHAUDIO_VERSION: "2.9.0"
+      - TORCHVISION_VERSION: "0.24.0"
       - MAMBA_ROOT_PREFIX: "/opt/conda"
       - MLFLOW_VERSION: "2.22.1"
-    stage-packages:
+    overlay-packages:
+      - apt-transport-https
+      - bash
+      - bzip2
+      - ca-certificates
+      - curl
+      - git
+      - gnupg
+      - gnupg2
+      - locales
+      - lsb-release
+      - nano
+      - software-properties-common
+      - tzdata
+      - unzip
+      - vim
+      - wget
+      - xz-utils
+      - zip
       - python3-distutils
     override-build: |
       set -xe
