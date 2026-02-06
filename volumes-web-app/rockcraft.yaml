@@ -126,8 +126,18 @@ parts:
       cp -r $CRAFT_PART_SRC/components/crud-web-apps/volumes/backend/entrypoint.py $CRAFT_PART_INSTALL/src/
       cp -r $CRAFT_STAGE/frontend-src/dist/default/ $CRAFT_PART_INSTALL/src/apps/default/static
 
+      # make config dir
+      mkdir -p /etc/config
+
   security-team-requirement:
     plugin: nil
     override-build: |
       mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
       (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
+
+  non-root-user:
+    plugin: nil
+    override-prime: |
+      craftctl default
+      install -d -o 584792 -g 584792 -m 770 \
+        etc/config
