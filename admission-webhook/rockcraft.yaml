@@ -50,6 +50,8 @@ parts:
 
   non-root-user:
     plugin: nil
+    after:
+      - admission-webhook
     override-prime: |
       craftctl default
       install -d -o 584792 -g 584792 -m 770 \
