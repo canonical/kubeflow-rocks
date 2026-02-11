@@ -115,6 +115,9 @@ parts:
     override-build: |
       cd $CRAFT_STAGE/backend-src/ && pip install .
 
+      # install cachetools as not shipped anymore by google-auth: https://github.com/googleapis/google-auth-library-python/pull/1590
+      pip install cachetools==5.5.2
+
       # Promote the packages we've installed from the local env to the primed image
       mkdir -p $CRAFT_PART_INSTALL/usr/local/lib/python3.10/dist-packages
       cp -fr /usr/local/lib/python3.10/dist-packages/* $CRAFT_PART_INSTALL/usr/local/lib/python3.10/dist-packages/
