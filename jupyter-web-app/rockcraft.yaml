@@ -126,7 +126,10 @@ parts:
       cp -r $CRAFT_STAGE/frontend-src/dist/default/ $CRAFT_PART_INSTALL/src/apps/default/static
 
       # make config dir
-      mkdir -p /etc/config
+      mkdir -p $CRAFT_PART_INSTALL/etc/config
+
+      # make logos dir
+      mkdir -p $CRAFT_PART_INSTALL/src/apps/default/static/assets/logos
 
   security-team-requirement:
     plugin: nil
@@ -142,4 +145,4 @@ parts:
       craftctl default
       install -d -o 584792 -g 584792 -m 770 \
         etc/config \
-        src/apps/default/static
+        src/apps/default/static/assets/logos
