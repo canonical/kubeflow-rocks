@@ -134,12 +134,6 @@ parts:
       # make logos dir
       mkdir -p $CRAFT_PART_INSTALL/src/apps/default/static/assets/logos
 
-  security-team-requirement:
-    plugin: nil
-    override-build: |
-      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
-      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
-
   non-root-user:
     plugin: nil
     after:
@@ -149,3 +143,11 @@ parts:
       install -d -o 584792 -g 584792 -m 770 \
         etc/config \
         src/apps/default/static/assets/logos
+
+  security-team-requirement:
+    plugin: nil
+    after:
+      - non-root-user
+    override-build: |
+      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
+      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
