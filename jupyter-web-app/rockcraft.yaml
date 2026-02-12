@@ -115,6 +115,9 @@ parts:
     override-build: |
       cd $CRAFT_STAGE/backend-src/ && pip install .
 
+      # install cachetools as not shipped anymore by google-auth: https://github.com/googleapis/google-auth-library-python/pull/1590
+      pip install cachetools==5.5.2
+
       # Promote the packages we've installed from the local env to the primed image
       mkdir -p $CRAFT_PART_INSTALL/usr/local/lib/python3.10/dist-packages
       cp -fr /usr/local/lib/python3.10/dist-packages/* $CRAFT_PART_INSTALL/usr/local/lib/python3.10/dist-packages/
@@ -125,8 +128,26 @@ parts:
       cp -r $CRAFT_PART_SRC/components/crud-web-apps/jupyter/backend/entrypoint.py $CRAFT_PART_INSTALL/src/
       cp -r $CRAFT_STAGE/frontend-src/dist/default/ $CRAFT_PART_INSTALL/src/apps/default/static
 
+      # make config dir
+      mkdir -p $CRAFT_PART_INSTALL/etc/config
+
+      # make logos dir
+      mkdir -p $CRAFT_PART_INSTALL/src/apps/default/static/assets/logos
+
+  non-root-user:
+    plugin: nil
+    after:
+      - webapp
+    override-prime: |
+      craftctl default
+      install -d -o 584792 -g 584792 -m 770 \
+        etc/config \
+        src/apps/default/static/assets/logos
+
   security-team-requirement:
     plugin: nil
+    after:
+      - non-root-user
     override-build: |
       mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
       (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
