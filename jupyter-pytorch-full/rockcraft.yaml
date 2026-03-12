@@ -206,7 +206,7 @@ parts:
       mkdir -p "${CRAFT_PART_INSTALL}/${CONDA_DIR}" \
       "${CRAFT_PART_INSTALL}/etc" \
       "${CRAFT_PART_INSTALL}/${HOME}" \
-      "${CRAFT_PART_INSTALL}/${HOME_TMP}" \
+      "${CRAFT_PART_INSTALL}/${HOME_TMP}"
 
       # Write some config files for activating conda in user sessions
       chmod 2775 ${CRAFT_PART_INSTALL}/${CONDA_DIR}
