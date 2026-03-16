@@ -36,7 +36,7 @@ parts:
     plugin: go
     build-snaps:
       - go/1.22/stable
-    source: https://github.com/kubeflow/dashboard
+    source: https://github.com/canonical/kubeflow-dashboard
     source-subdir: components/poddefaults-webhooks
     source-type: git
     source-branch: main

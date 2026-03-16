@@ -30,7 +30,7 @@ parts:
 
   builder:
     plugin: dump
-    source: https://github.com/kubeflow/dashboard
+    source: https://github.com/canonical/kubeflow-dashboard
     source-subdir: components/centraldashboard
     source-type: git
     source-branch: main

@@ -28,7 +28,7 @@ parts:
   profile-controller:
     plugin: go
     source-type: git
-    source: https://github.com/kubeflow/dashboard
+    source: https://github.com/canonical/kubeflow-dashboard
     source-branch: main
     source-subdir: components/profile-controller
     build-environment:
