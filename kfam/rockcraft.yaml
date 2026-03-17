@@ -42,10 +42,8 @@ parts:
       # cd into $CRAFT_PART_SRC_WORK due to https://github.com/canonical/craft-parts/issues/427
       cd $CRAFT_PART_SRC_WORK
 
-      for m in $(go list -m all | awk '/^github.com\/hashicorp\// {print $1 "@" $2}'); do \
-        go mod download "$m"; \
-        pkg="${m%@*}"; \
-        go list "$pkg/..." >/dev/null 2>&1 || true; \
+      for m in $(go list -m all | awk '/^github.com\/hashicorp\// {print $1 "@" $2}'); do
+        go mod download "$m"
       done
 
       go build -o $CRAFT_PART_INSTALL/access-management main.go

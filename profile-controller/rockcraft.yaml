@@ -40,10 +40,8 @@ parts:
     override-build: |
       cd $CRAFT_PART_SRC_WORK
 
-      for m in $(go list -m all | awk '/^github.com\/hashicorp\// {print $1 "@" $2}'); do \
-        go mod download "$m"; \
-        pkg="${m%@*}"; \
-        go list "$pkg/..." >/dev/null 2>&1 || true; \
+      for m in $(go list -m all | awk '/^github.com\/hashicorp\// {print $1 "@" $2}'); do
+        go mod download "$m"
       done
 
       go build -a -o $CRAFT_PART_INSTALL/manager main.go
