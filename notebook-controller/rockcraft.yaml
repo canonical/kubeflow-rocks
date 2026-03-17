@@ -52,7 +52,7 @@ parts:
       done
 
       # build
-      go build -a -mod=mod -o manager main.go
+      go build -a -o manager main.go
 
       # install build artifacts
       mkdir -p $CRAFT_PART_INSTALL/

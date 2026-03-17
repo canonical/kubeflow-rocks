@@ -32,6 +32,8 @@ parts:
       - python3-setuptools
       - python3-pip
     override-build: |
+      # The `--break-system-packages` option is required since we are installing packages system-wide
+      # See https://peps.python.org/pep-0668/ for more information
       python3 -m pip install setuptools wheel --break-system-packages
       # Create a directory that holds the src of the backend copied
       # from the CRAFT_PART_SRC directory to avoid bringing files that
@@ -114,9 +116,13 @@ parts:
       - python3-setuptools
       - python3-pip
     override-build: |
+      # The `--break-system-packages` option is required since we are installing packages system-wide
+      # See https://peps.python.org/pep-0668/ for more information
       cd $CRAFT_STAGE/backend-src/ && pip install . --break-system-packages
 
       # install cachetools as not shipped anymore by google-auth: https://github.com/googleapis/google-auth-library-python/pull/1590
+      # The `--break-system-packages` option is required since we are installing packages system-wide
+      # See https://peps.python.org/pep-0668/ for more information
       pip install cachetools==5.5.2 --break-system-packages
 
       # Promote the packages we've installed from the local env to the primed image
