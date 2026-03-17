@@ -4,9 +4,9 @@ summary: Tensorboards Web App
 description: |
   This web app is responsible for allowing the user to manipulate tensorboards in their Kubeflow
   cluster.
-version: "1.10.0"
+version: 1.11.0
 license: Apache-2.0
-base: ubuntu@22.04
+base: ubuntu@24.04
 platforms:
   amd64:
 run-user: _daemon_
@@ -30,16 +30,16 @@ parts:
 
   backend:
     plugin: nil
-    source: https://github.com/kubeflow/kubeflow
+    source: https://github.com/kubeflow/notebooks
     source-type: git
-    source-tag: v1.10.0
+    source-branch: notebooks-v1
     source-depth: 1
     build-packages:
       - python3-venv
       - python3-setuptools
       - python3-pip
     override-build: |
-      python3 -m pip install wheel
+      python3 -m pip install setuptools wheel --break-system-packages
       # Create a directory that holds the src of the backend copied
       # from the CRAFT_PART_SRC directory to avoid bringing files that
       # could affect the build of the backend wheel.
@@ -52,12 +52,12 @@ parts:
 
   frontend-lib:
     plugin: nil
-    source: https://github.com/kubeflow/kubeflow
+    source: https://github.com/kubeflow/notebooks
     source-type: git
-    source-tag: v1.10.0
+    source-branch: notebooks-v1
     source-depth: 1
     build-snaps:
-      - node/16/stable
+      - node/24/stable
     build-environment:
       - NG_CLI_ANALYTICS: "ci"
     override-build: |
@@ -74,12 +74,12 @@ parts:
   frontend:
     after: [frontend-lib]
     plugin: nil
-    source: https://github.com/kubeflow/kubeflow
+    source: https://github.com/kubeflow/notebooks
     source-type: git
-    source-tag: v1.10.0
+    source-branch: notebooks-v1
     source-depth: 1
     build-snaps:
-      - node/16/stable
+      - node/24/stable
     build-environment:
       - NG_CLI_ANALYTICS: "ci"
     override-build: |
@@ -102,20 +102,20 @@ parts:
   webapp:
     after: [backend, frontend]
     plugin: nil
-    source: https://github.com/kubeflow/kubeflow
+    source: https://github.com/kubeflow/notebooks
     source-type: git
-    source-tag: v1.10.0
+    source-branch: notebooks-v1
     source-depth: 1
     build-packages:
       - python3-venv
       - python3-setuptools
       - python3-pip
     override-build: |
-      cd $CRAFT_STAGE/backend-src/ && pip install .
+      cd $CRAFT_STAGE/backend-src/ && pip install . --break-system-packages
 
       # Promote the packages we've installed from the local env to the primed image
-      mkdir -p $CRAFT_PART_INSTALL/usr/local/lib/python3.10/dist-packages
-      cp -fr /usr/local/lib/python3.10/dist-packages/* $CRAFT_PART_INSTALL/usr/local/lib/python3.10/dist-packages/
+      mkdir -p $CRAFT_PART_INSTALL/usr/local/lib/python3.12/dist-packages
+      cp -fr /usr/local/lib/python3.12/dist-packages/* $CRAFT_PART_INSTALL/usr/local/lib/python3.12/dist-packages/
 
       mkdir $CRAFT_PART_INSTALL/src && cd $CRAFT_PART_INSTALL/src
       mkdir $CRAFT_PART_INSTALL/src/app/
@@ -127,8 +127,9 @@ parts:
 
   gunicorn:
     plugin: python
-    source: https://github.com/kubeflow/kubeflow.git
-    source-tag: v1.10.0
+    source: https://github.com/kubeflow/notebooks
+    source-type: git
+    source-branch: notebooks-v1
     source-depth: 1
     python-requirements:
     - components/crud-web-apps/tensorboards/backend/requirements.txt
