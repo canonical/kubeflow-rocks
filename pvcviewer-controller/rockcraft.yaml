@@ -1,4 +1,4 @@
-# Source https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/pvcviewer-controller/Dockerfile
+# Source https://github.com/kubeflow/notebooks/blob/notebooks-v1/components/pvcviewer-controller/Dockerfile
 
 name: pvcviewer-controller
 summary: An image for PVC viewer controller
@@ -7,7 +7,7 @@ description: |
   manage and view Persistent Volume Claims (PVCs) in the cluster.
 version: "1.11.0"
 license: Apache-2.0
-base: ubuntu@22.04
+base: ubuntu@24.04
 run-user: _daemon_
 platforms:
   amd64:

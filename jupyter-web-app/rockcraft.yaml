@@ -1,4 +1,4 @@
-# Based on https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/crud-web-apps/jupyter/Dockerfile
+# Based on https://github.com/kubeflow/notebooks/blob/notebooks-v1/components/crud-web-apps/jupyter/Dockerfile
 name: jupyter-web-app
 summary: An image for Jupyter UI
 description: |

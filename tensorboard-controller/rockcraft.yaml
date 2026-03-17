@@ -1,4 +1,4 @@
-# Source https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/tensorboard-controller/Dockerfile
+# Source https://github.com/kubeflow/notebooks/blob/notebooks-v1/components/tensorboard-controller/Dockerfile
 name: tensorboard-controller
 summary: An image for tensorboard controller
 description: |
@@ -6,7 +6,7 @@ description: |
   for providing the measurements and visualizations needed during the machine learning workflow.
 version: 1.11.0
 license: Apache-2.0
-base: ubuntu@22.04
+base: ubuntu@24.04
 services:
   tensorboard-controller:
     override: replace
