@@ -1,6 +1,6 @@
-# From https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/admission-webhook/Dockerfile
+# From https://github.com/kubeflow/dashboard/blob/main/components/poddefaults-webhooks/Dockerfile
 name: admission-webhook
-base: ubuntu@22.04
+base: ubuntu@24.04
 run-user: _daemon_
 version: 2.0.0
 summary: An image for Kubeflow's admission-webhook

@@ -1,7 +1,7 @@
-# Constructed from https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/profile-controller/Dockerfile
+# Constructed from https://github.com/kubeflow/dashboard/blob/main/components/profile-controller/Dockerfile
 
 name: profile-controller
-base: ubuntu@22.04
+base: ubuntu@24.04
 version: 2.0.0
 summary: Controller for Kubeflow Profile objects
 description: Controller for Kubeflow Profile objects
