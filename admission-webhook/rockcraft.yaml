@@ -1,4 +1,4 @@
-# From https://github.com/kubeflow/dashboard/blob/main/components/poddefaults-webhooks/Dockerfile
+# From https://github.com/kubeflow/dashboard/blob/v2.0.0-rc.0/components/poddefaults-webhooks/Dockerfile
 name: admission-webhook
 base: ubuntu@24.04
 run-user: _daemon_
@@ -39,7 +39,7 @@ parts:
     source: https://github.com/kubeflow/dashboard
     source-subdir: components/poddefaults-webhooks
     source-type: git
-    source-branch: main
+    source-tag: v2.0.0-rc.0
     build-environment:
       - CGO_ENABLED: 0
       - GOOS: linux
