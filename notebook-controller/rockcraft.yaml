@@ -1,21 +1,21 @@
-# Source https://github.com/kubeflow/kubeflow/blob/v1.10.0/components/notebook-controller/Dockerfile
+# Source https://github.com/canonical/kubeflow-notebooks/blob/v1.11.0-rc.0-ambient/components/notebook-controller/Dockerfile
 name: notebook-controller
 summary: An image for Jupyter notebook controller
 description: |
   This image is used as part of the Charmed Kubeflow product. The controller allows users to
   create a custom resource "Notebook" (jupyter notebook).
-version: "1.10.0"
+version: 1.11.0-rc.0-ambient
 license: Apache-2.0
-base: ubuntu@22.04
+base: ubuntu@24.04
 services:
   jupyter-controller:
     override: replace
     summary: "notebook-controller service"
     startup: enabled
-    user: ubuntu
     command: "/manager"
 platforms:
   amd64:
+run-user: _daemon_
 
 parts:
   security-team-requirement:
@@ -28,11 +28,13 @@ parts:
 
   notebook-controller:
     plugin: go
-    source: https://github.com/kubeflow/kubeflow
+    source: https://github.com/canonical/kubeflow-notebooks
     source-type: git
-    source-tag: v1.10.0
+    source-tag: v1.11.0-rc.0-ambient
+    source-depth: 1
+    source-subdir: components/notebook-controller
     build-snaps:
-      - go/1.17/stable
+      - go/1.24/stable
     build-packages:
       - apt
       - bash
@@ -42,14 +44,15 @@ parts:
     stage-packages:
       - bash
     override-build: |
-      set -xe
-      cd $CRAFT_PART_SRC/components/notebook-controller/
+      set -e
+      cd $CRAFT_PART_SRC_WORK
+
+      for m in $(go list -m all | awk '/^github.com\/hashicorp\// {print $1 "@" $2}'); do
+        go mod download "$m"
+      done
 
       # build
-      rm -f go.sum
-      go mod tidy
-      go mod download all
-      go build -a -mod=mod -o manager main.go
+      go build -a -o manager main.go
 
       # install build artifacts
       mkdir -p $CRAFT_PART_INSTALL/
@@ -57,11 +60,3 @@ parts:
       mkdir -p $CRAFT_PART_INSTALL/third_party
       cp third_party/license.txt $CRAFT_PART_INSTALL/third_party/license.txt
       cp -r /root/go/pkg/mod/github.com/hashicorp $CRAFT_PART_INSTALL/third_party/hashicorp
-
-  non-root-user:
-    plugin: nil
-    after: [notebook-controller]
-    overlay-script: |
-      # Create a user in the $CRAFT_OVERLAY chroot
-      groupadd -R $CRAFT_OVERLAY -g 1001 ubuntu
-      useradd -R $CRAFT_OVERLAY -M -r -u 1001 -g ubuntu ubuntu
