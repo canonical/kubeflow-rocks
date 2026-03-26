@@ -5,13 +5,11 @@
 import requests
 import tenacity
 
-@tenacity.retry(
-stop=tenacity.stop_after_attempt(5),
-wait=tenacity.wait_fixed(2)
-)
+
+@tenacity.retry(stop=tenacity.stop_after_attempt(5), wait=tenacity.wait_fixed(2))
 def check_notebook_server_up(url):
     response = requests.get(url)
-    response.raise_for_status() # Raise an exception if the request was unsuccessful
+    response.raise_for_status()  # Raise an exception if the request was unsuccessful
     return response.text
 
 

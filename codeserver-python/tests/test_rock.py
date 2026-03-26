@@ -2,12 +2,9 @@
 # See LICENSE file for licensing details.
 #
 #
-import pytest
 import subprocess
-import tenacity
-import requests
 
-from charmed_kubeflow_chisme.rock import CheckRock
+import pytest
 
 
 @pytest.mark.abort_on_fail
@@ -20,5 +17,10 @@ def test_rock(rock_env):
     assert rock_services["codeserver-jupyter"]["startup"] == "enabled"
 
     # verify that artifacts are in correct locations
-    subprocess.run(["docker", "exec", rock_env[0], "ls", "-ls", "/usr/bin/code-server"], check=True)
-    subprocess.run(["docker", "exec", rock_env[0], "ls", "-ls", "/opt/conda/bin/jupyter"], check=True)
+    subprocess.run(
+        ["docker", "exec", rock_env[0], "ls", "-ls", "/usr/bin/code-server"], check=True
+    )
+    subprocess.run(
+        ["docker", "exec", rock_env[0], "ls", "-ls", "/opt/conda/bin/jupyter"],
+        check=True,
+    )
