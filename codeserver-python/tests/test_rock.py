@@ -4,22 +4,21 @@
 #
 import pytest
 import subprocess
+import tenacity
+import requests
 
 from charmed_kubeflow_chisme.rock import CheckRock
 
+
 @pytest.mark.abort_on_fail
-def test_rock():
+def test_rock(rock_env):
     """Test rock."""
-    check_rock = CheckRock("rockcraft.yaml")
-    rock_image = check_rock.get_name()
-    rock_version = check_rock.get_version()
-    rock_services = check_rock.get_services()
-    LOCAL_ROCK_IMAGE = f"{rock_image}:{rock_version}"
+    rock_services = rock_env[1].get_services()
 
     # verify rock service
     assert rock_services["codeserver-jupyter"]
     assert rock_services["codeserver-jupyter"]["startup"] == "enabled"
 
     # verify that artifacts are in correct locations
-    subprocess.run(["docker", "run", LOCAL_ROCK_IMAGE, "exec", "ls", "-ls", "/usr/bin/code-server"], check=True)
-    subprocess.run(["docker", "run", LOCAL_ROCK_IMAGE, "exec", "ls", "-ls", "/opt/conda/bin/jupyter"], check=True)
+    subprocess.run(["docker", "exec", rock_env[0], "ls", "-ls", "/usr/bin/code-server"], check=True)
+    subprocess.run(["docker", "exec", rock_env[0], "ls", "-ls", "/opt/conda/bin/jupyter"], check=True)
