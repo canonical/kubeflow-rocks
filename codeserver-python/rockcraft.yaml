@@ -46,28 +46,6 @@ parts:
       dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
       > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
 
-  overlay-pkgs:
-    plugin: nil
-    overlay-packages:
-      - apt-transport-https
-      - bash
-      - bzip2
-      - ca-certificates
-      - curl
-      - git
-      - gnupg
-      - gnupg2
-      - locales
-      - lsb-release
-      - nano
-      - software-properties-common
-      - tzdata
-      - unzip
-      - vim
-      - wget
-      - xz-utils
-      - zip
-
   kubectl:
     plugin: nil
     stage-snaps:
@@ -118,6 +96,25 @@ parts:
       - PYTHON_VERSION: "3.11.11"
       - PATH: "${CONDA_DIR}/bin:${PATH}"
       - XDG_RUNTIME_DIR: "/tmp/runtime-${NB_USER}"
+    overlay-packages:
+      - apt-transport-https
+      - bash
+      - bzip2
+      - ca-certificates
+      - curl
+      - git
+      - gnupg
+      - gnupg2
+      - locales
+      - lsb-release
+      - nano
+      - software-properties-common
+      - tzdata
+      - unzip
+      - vim
+      - wget
+      - xz-utils
+      - zip
     override-build: |
       mkdir -p "$CONDA_DIR" "$HOME"
       
