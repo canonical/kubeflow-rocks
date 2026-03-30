@@ -1,11 +1,11 @@
-# Based on https://github.com/kubeflow/notebooks/blob/v1.11.0-rc.0/components/crud-web-apps/volumes/Dockerfile
+# Based on https://github.com/kubeflow/notebooks/blob/v1.11.0-rc.1/components/crud-web-apps/volumes/Dockerfile
 name: volumes-web-app
 summary: Volumes Web App
 description: |
   This web app is responsible for allowing the user to manipulate PVCs in their Kubeflow
   cluster. To achieve this it provides a user friendly way to handle the lifecycle of PVC
   objects.
-version: 1.11.0-rc.0
+version: 1.11.0-rc.1
 license: Apache-2.0
 base: ubuntu@24.04
 platforms:
@@ -26,7 +26,7 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/notebooks
     source-type: git
-    source-tag: v1.11.0-rc.0
+    source-tag: v1.11.0-rc.1
     source-depth: 1
     build-packages:
       - python3-venv
@@ -50,7 +50,7 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/notebooks
     source-type: git
-    source-tag: v1.11.0-rc.0
+    source-tag: v1.11.0-rc.1
     source-depth: 1
     build-snaps:
       - node/24/stable
@@ -72,7 +72,7 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/notebooks
     source-type: git
-    source-tag: v1.11.0-rc.0
+    source-tag: v1.11.0-rc.1
     source-depth: 1
     build-snaps:
       - node/24/stable
@@ -98,7 +98,7 @@ parts:
     plugin: python
     source: https://github.com/kubeflow/notebooks
     source-type: git
-    source-tag: v1.11.0-rc.0
+    source-tag: v1.11.0-rc.1
     source-depth: 1
     python-requirements:
       - components/crud-web-apps/volumes/backend/requirements.txt
@@ -110,7 +110,7 @@ parts:
     plugin: nil
     source: https://github.com/kubeflow/notebooks
     source-type: git
-    source-tag: v1.11.0-rc.0
+    source-tag: v1.11.0-rc.1
     source-depth: 1
     build-packages:
       - python3-venv
