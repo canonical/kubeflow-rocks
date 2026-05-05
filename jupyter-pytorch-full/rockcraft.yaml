@@ -178,6 +178,10 @@ parts:
         torchaudio==${TORCHAUDIO_VERSION}
 
       # Install the jupyter-pytorch-full requirements
+      # NOTE: the version of numpy is higher than the corresponding upstream one in order to have
+      # the same version of pandas as upstream, because of pandas' requirements - i.e., for pandas
+      # 2.2.3 (upstream), numpy >= 2.0 (unlike upstream, == 1.26.4) is recommended:
+      # https://github.com/pandas-dev/pandas/blob/v2.2.3/pyproject.toml#L9-L11
       "${CONDA_BIN}/mamba" install -y -q \
         bokeh==3.6.3 \
         cloudpickle==3.1.1 \
