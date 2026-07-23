@@ -53,33 +53,6 @@ parts:
       dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
       > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
 
-  overlay-pkgs:
-    plugin: nil
-    # These were taken from the upstream base image. They *may not* all be required.
-    overlay-packages:
-      - apt-transport-https
-      - bash
-      - bzip2
-      - ca-certificates
-      - curl
-      - git
-      - gnupg
-      - gnupg2
-      - locales
-      - lsb-release
-      - nano
-      - software-properties-common
-      - tzdata
-      - unzip
-      - vim
-      - wget
-      - xz-utils
-      - zip
-      # jupyter scipy packages
-      - cm-super
-      - dvipng
-      - ffmpeg
-
   kubectl:
     plugin: nil
     stage-snaps:
@@ -144,8 +117,31 @@ parts:
       - MAMBA_ROOT_PREFIX: "/opt/conda"
       - MLFLOW_VERSION: "2.15.1"  # Latest mlflow version we support https://github.com/canonical/mlflow-operator/blob/main/metadata.yaml#L18
       - FEAST_VERSION: "0.49.0"  # Latest feast version we support https://github.com/canonical/feast-rocks/blob/main/feast-ui/rockcraft.yaml#L35
-    stage-packages:
+    # These were taken from the upstream base image. They *may not* all be required.
+    overlay-packages:
       - python3.11-distutils
+      - apt-transport-https
+      - bash
+      - bzip2
+      - ca-certificates
+      - curl
+      - git
+      - gnupg
+      - gnupg2
+      - locales
+      - lsb-release
+      - nano
+      - software-properties-common
+      - tzdata
+      - unzip
+      - vim
+      - wget
+      - xz-utils
+      - zip
+      # jupyter scipy packages
+      - cm-super
+      - dvipng
+      - ffmpeg
     override-build: |
       set -xe
       mkdir -p "${CONDA_DIR}" "${HOME}"
@@ -177,7 +173,7 @@ parts:
       # Clean up
       "${CONDA_BIN}/conda" update -y -q --all
       "${CONDA_BIN}/conda" clean -a -f -y
-      
+
       # Install the jupyter python requirements
       echo "jupyterlab ==${JUPYTERLAB_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned
       echo "notebook ==${JUPYTER_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned
@@ -185,15 +181,15 @@ parts:
         jupyterlab==${JUPYTERLAB_VERSION} \
         notebook==${JUPYTER_VERSION}
       "${CONDA_BIN}/conda" clean -a -f -y
-      
+
       cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter/requirements.txt /tmp/requirements.txt
       "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/requirements.txt
       rm -f /tmp/requirements.txt
 
       # configure - jupyter
-      "${CONDA_BIN}/jupyter" labextension disable --level=system "@jupyterlab/apputils-extension:announcements" 
+      "${CONDA_BIN}/jupyter" labextension disable --level=system "@jupyterlab/apputils-extension:announcements"
       "${CONDA_BIN}/jupyter" labextension lock --level=system "@jupyterlab/apputils-extension"
-      
+
       # Install the jupyter-scipy requirements
       "${CONDA_BIN}/mamba" install -y -q \
         altair \
@@ -228,21 +224,21 @@ parts:
         xlrd \
 
       "${CONDA_BIN}/mamba" clean -a -f -y
-      
+
       cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-scipy/requirements.txt /tmp/requirements.txt
       "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/requirements.txt
       rm -f /tmp/requirements.txt
 
       # Install mlflow so we can use this with mlflow https://github.com/canonical/data-science-stack/issues/47#issuecomment-2004136344
       "${CONDA_BIN}/pip" install --quiet --no-cache-dir \
-        mlflow==${MLFLOW_VERSION} 
+        mlflow==${MLFLOW_VERSION}
 
       # Install feast dependencies so we can use it https://github.com/canonical/kubeflow-rocks/issues/208
       # protobuf fix for https://github.com/feast-dev/feast/issues/5457
       "${CONDA_BIN}/pip" install --quiet --no-cache-dir \
         feast[postgres]==${FEAST_VERSION} \
         protobuf==6.30.2 \
-      
+
       # Fixes the problem with pipy extension not loading in the jupyter
       "${CONDA_BIN}/pip" install httpx==0.23.0
 
