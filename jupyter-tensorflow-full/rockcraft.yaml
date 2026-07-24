@@ -46,28 +46,6 @@ parts:
       dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
       > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
 
-  overlay-pkgs:
-    plugin: nil
-    overlay-packages:
-      - apt-transport-https
-      - bash
-      - bzip2
-      - ca-certificates
-      - curl
-      - git
-      - gnupg
-      - gnupg2
-      - locales
-      - lsb-release
-      - nano
-      - software-properties-common
-      - tzdata
-      - unzip
-      - vim
-      - wget
-      - xz-utils
-      - zip
-
   kubectl:
     plugin: nil
     stage-snaps:
@@ -115,8 +93,26 @@ parts:
       - JUPYTER_VERSION: "7.3.2"
       - TENSORFLOW_VERSION: "2.17.1"
       - MAMBA_ROOT_PREFIX: "/opt/conda"
-    stage-packages:
+    overlay-packages:
       - python3-distutils
+      - apt-transport-https
+      - bash
+      - bzip2
+      - ca-certificates
+      - curl
+      - git
+      - gnupg
+      - gnupg2
+      - locales
+      - lsb-release
+      - nano
+      - software-properties-common
+      - tzdata
+      - unzip
+      - vim
+      - wget
+      - xz-utils
+      - zip
     override-build: |
       set -xe
       mkdir -p "$CONDA_DIR" "$HOME"
