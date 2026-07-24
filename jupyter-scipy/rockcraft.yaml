@@ -168,7 +168,8 @@ parts:
       "${CONDA_BIN}/conda" install -y -q \
                           python="${PYTHON_VERSION}" \
                           conda="${MINIFORGE_VERSION:0:-2}" \
-                          pip="${PIP_VERSION}"
+                          pip="${PIP_VERSION}" \
+                          setuptools
 
       # Clean up
       "${CONDA_BIN}/conda" update -y -q --all
