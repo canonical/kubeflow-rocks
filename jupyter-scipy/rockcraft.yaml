@@ -168,8 +168,7 @@ parts:
       "${CONDA_BIN}/conda" install -y -q \
                           python="${PYTHON_VERSION}" \
                           conda="${MINIFORGE_VERSION:0:-2}" \
-                          pip="${PIP_VERSION}" \
-                          setuptools
+                          pip="${PIP_VERSION}"
 
       # Clean up
       "${CONDA_BIN}/conda" update -y -q --all
@@ -243,6 +242,10 @@ parts:
       # Fixes the problem with pipy extension not loading in the jupyter
       "${CONDA_BIN}/pip" install httpx==0.23.0
 
+      # setuptools >=81 no longer bundles pkg_resources, which vincent still
+      # imports. Install the standalone redistribution to provide it.
+      "${CONDA_BIN}/pip" install --no-cache-dir standard-pkg-resources==1.0.0
+
       # Create some directories for staging files
       # mkdir -p "${CRAFT_PART_INSTALL}/opt" "${CRAFT_PART_INSTALL}/etc" "${CRAFT_PART_INSTALL}/home"
       mkdir -p "${CRAFT_PART_INSTALL}/${CONDA_DIR}" \
@@ -291,4 +294,6 @@ parts:
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
       chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
       mkdir -pv ${CRAFT_PRIME}/usr/local/etc/jupyter
+      mkdir -p ${CRAFT_PRIME}/home/${NB_USER}/.config
+      chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/home/${NB_USER}/.config
       chown -R ${NB_UID}:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
