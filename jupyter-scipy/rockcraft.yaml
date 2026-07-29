@@ -244,6 +244,7 @@ parts:
 
       # setuptools >=81 no longer bundles pkg_resources, which vincent still
       # imports. Install the standalone redistribution to provide it.
+      # See: https://github.com/ManimCommunity/manim/issues/3585
       "${CONDA_BIN}/pip" install --no-cache-dir standard-pkg-resources==1.0.0
 
       # Create some directories for staging files
