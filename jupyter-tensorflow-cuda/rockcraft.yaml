@@ -1,0 +1,341 @@
+# Based on the following Dockerfiles:
+# https://github.com/kubeflow/notebooks/blob/v1.11.0/components/example-notebook-servers/base/Dockerfile
+# https://github.com/kubeflow/notebooks/blob/v1.11.0/components/example-notebook-servers/jupyter/Dockerfile
+# https://github.com/kubeflow/notebooks/blob/v1.11.0/components/example-notebook-servers/jupyter-tensorflow-cuda/Dockerfile
+#
+# TensorFlow is NOT pip-installed here: it is NVIDIA's prebuilt CUDA 12.8 build
+# (TF 2.17.0+nv25.2) from nvcr.io/nvidia/tensorflow:25.02-tf2-py3. To let it share the base
+# conda env, that env is pinned to numpy 1.26. The rock base is ubuntu@24.04 to match the
+# image's glibc and cp312 ABI.
+name: jupyter-tensorflow-cuda
+summary: An image for using Jupyter & Tensorflow on GPUs
+description: |
+  This image is used as part of the Charmed Kubeflow product. It is deployed
+  in a user namespace, and enables users to perform GPU-accelerated tasks
+  using Tensorflow (with CUDA) from within a Jupyter Notebook.
+
+  Jupyter and the scientific Python stack run in a Conda environment (auto
+  activated). TensorFlow is NVIDIA's CUDA 12.8 build (from the NGC image
+  nvcr.io/nvidia/tensorflow:25.02-tf2-py3), installed in that same environment.
+version: "1.11.0"
+license: Apache-2.0
+base: ubuntu@24.04
+run-user: _daemon_
+
+environment:
+  PATH: "/opt/conda/bin:/usr/local/nvidia/bin:/usr/local/cuda-12.8/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  PYTHONPATH: "/opt/conda/lib/python3.12/site-packages/"
+  # nvidia container toolkit
+  NVIDIA_VISIBLE_DEVICES: "all"
+  NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+  NVIDIA_REQUIRE_CUDA: "cuda>=12.8"
+  # CUDA/cuDNN/TensorRT extracted from the NGC image, plus the host driver libs
+  # injected by the NVIDIA container runtime at /usr/local/nvidia.
+  LD_LIBRARY_PATH: "/usr/local/cuda-12.8/lib64:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64"
+
+services:
+  jupyter:
+    override: replace
+    summary: "jupyter-tensorflow-cuda service"
+    startup: enabled
+    command: bash -c 'cp -n -r -T ${HOME_TMP} ${HOME} && /opt/conda/bin/jupyter lab --notebook-dir=${HOME} --ip=0.0.0.0 --no-browser --allow-root --port=8888 --ServerApp.token="" --ServerApp.password="" --ServerApp.allow_origin="*" --ServerApp.allow_remote_access=True --ServerApp.base_url=${NB_PREFIX} --ServerApp.authenticate_prometheus=False'
+    working-dir: /home/jovyan/
+    environment:
+       USERS_GID: "100"
+       HOME: "/home/jovyan"
+       HOME_TMP: "/tmp_home/jovyan"
+       SHELL: "/bin/bash"
+       LANG: "en_US.UTF-8"
+       LANGUAGE: "en_US.UTF-8"
+       LC_ALL: "en_US.UTF-8"
+       JUPYTER_RUNTIME_DIR: "/tmp/jupyter_runtime"
+platforms:
+  amd64:
+
+parts:
+  security-team-requirement:
+    plugin: nil
+    override-build: |
+      mkdir -p ${CRAFT_PART_INSTALL}/usr/share/rocks
+      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && \
+      dpkg-query -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) \
+      > ${CRAFT_PART_INSTALL}/usr/share/rocks/dpkg.query
+
+  kubectl:
+    plugin: nil
+    stage-snaps:
+      - kubectl/1.35/stable
+    organize:
+      kubectl: bin/kubectl
+    stage:
+      - bin/kubectl
+
+  nodejs:
+    plugin: nil
+    stage-packages: [nodejs]
+
+  generate-locale:
+    plugin: nil
+    build-packages:
+      - locales
+    override-build: |
+      echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
+      locale-gen
+      mkdir -p $CRAFT_PART_INSTALL/usr/lib/locale $CRAFT_PART_INSTALL/usr/share/i18n/locales
+      cp /usr/lib/locale/locale-archive $CRAFT_PART_INSTALL/usr/lib/locale/locale-archive
+      cp -r /usr/share/i18n/locales $CRAFT_PART_INSTALL/usr/share/i18n/locales
+
+  conda-jupyter:
+    plugin: nil
+    source: https://github.com/kubeflow/notebooks
+    source-type: git
+    source-tag: v1.11.0
+    build-packages:
+      - lsb-release
+      - wget
+    build-environment:
+      - MINIFORGE_ARCH: "x86_64"
+      - MINIFORGE_VERSION: "26.3.2-2"
+      - PIP_VERSION: "26.1.1"
+      - PYTHON_VERSION: "3.12.13"
+      - HOME: "/home/jovyan"
+      - HOME_TMP: "/tmp_home/jovyan"
+      - NB_USER: "jovyan"
+      - NB_GID: "0"
+      - CONDA_DIR: "/opt/conda"
+      - CONDA_BIN: "/opt/conda/bin"
+      - JUPYTERLAB_VERSION: "4.5.7"
+      - JUPYTER_VERSION: "7.5.6"
+      - MAMBA_ROOT_PREFIX: "/opt/conda"
+    overlay-packages:
+      - apt-transport-https
+      - bash
+      - bzip2
+      - ca-certificates
+      - curl
+      - git
+      - gnupg
+      - gnupg2
+      - locales
+      - lsb-release
+      - nano
+      - software-properties-common
+      - tmux
+      - tzdata
+      - unzip
+      - vim
+      - wget
+      - xz-utils
+      - zip
+    override-build: |
+      set -xe
+      mkdir -p "$CONDA_DIR" "$HOME"
+
+      # Download the miniforge installer
+      wget -qO miniforge.sh \
+        "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh"
+
+      # Download the miniforge install shasums
+      wget -qO miniforge.sh.sha256 \
+        "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh.sha256"
+
+      # Verify that the downloaded installer is correct
+      echo "$(cat miniforge.sh.sha256 | awk '{ print $1; }') miniforge.sh" | sha256sum --check
+
+      # Run the miniforge installer
+      /bin/sh miniforge.sh -b -f -p "${CONDA_DIR}"
+
+      # Configure conda
+      "${CONDA_BIN}/conda" config --system --set auto_update_conda false
+      "${CONDA_BIN}/conda" config --system --set show_channel_urls true
+
+      echo "python ==${PYTHON_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned"
+
+      # Install the correct versions of python, pip
+      "${CONDA_BIN}/conda" install -y -q \
+                          python="${PYTHON_VERSION}" \
+                          pip="${PIP_VERSION}"
+      # Clean up
+      "${CONDA_BIN}/conda" update -y -q --all
+      "${CONDA_BIN}/conda" clean -a -f -y
+
+      # Install the jupyter python requirements
+      echo "jupyterlab ==${JUPYTERLAB_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned
+      echo "notebook ==${JUPYTER_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned
+      "${CONDA_BIN}/conda" install -y -q --solver=classic \
+        jupyterlab==${JUPYTERLAB_VERSION} \
+        notebook==${JUPYTER_VERSION}
+      "${CONDA_BIN}/conda" clean -a -f -y
+
+      cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter/requirements.txt /tmp/jupyter-requirements.txt
+      "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/jupyter-requirements.txt
+      rm -f /tmp/jupyter-requirements.txt
+
+      # configure - jupyter
+      "${CONDA_BIN}/jupyter" labextension disable --level=system "@jupyterlab/apputils-extension:announcements" 
+      "${CONDA_BIN}/jupyter" labextension lock --level=system "@jupyterlab/apputils-extension"
+
+      # NOTE: TensorFlow is NOT installed here. It is NVIDIA's prebuilt CUDA 12.8
+      # build, added by the 'tensorflow-ngc' part from the NGC image.
+      cp ${CRAFT_PART_SRC}/components/example-notebook-servers/jupyter-tensorflow-cuda/requirements.txt /tmp/requirements.txt
+      "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/requirements.txt
+      rm -f /tmp/requirements.txt
+
+      # Install the jupyter-tensorflow-cuda requirements.
+      # Pinned to a NumPy 1.26 ABI so NVIDIA's TensorFlow (numpy 1.26) shares this single env.
+      echo "numpy ==1.26.4" >> ${CONDA_DIR}/conda-meta/pinned
+      "${CONDA_BIN}/mamba" install -y -q \
+        numpy==1.26.4 \
+        pandas==2.2.3 \
+        scipy==1.12.0 \
+        scikit-learn==1.5.2 \
+        xgboost==2.1.3 \
+        cloudpickle==3.1.1 \
+        bokeh \
+        dill \
+        ipympl \
+        matplotlib \
+        seaborn \
+        scikit-image
+
+      "${CONDA_BIN}/mamba" clean -a -f -y
+
+      # Create some directories for staging files
+      mkdir -p "${CRAFT_PART_INSTALL}/${CONDA_DIR}" \
+      "${CRAFT_PART_INSTALL}/etc" \
+      "${CRAFT_PART_INSTALL}/${HOME}" \
+      "${CRAFT_PART_INSTALL}/${HOME_TMP}" \
+
+      cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-tensorflow-cuda/requirements.txt /tmp/requirements.txt
+      "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/requirements.txt
+      rm -f /tmp/requirements.txt
+
+      # Write some config files for activating conda in user sessions
+      chmod 2775 ${CRAFT_PART_INSTALL}/${CONDA_DIR}
+      echo ". /opt/conda/etc/profile.d/conda.sh" >> "${HOME}/.bashrc"
+      echo ". /opt/conda/etc/profile.d/conda.sh" >> "${CRAFT_PART_INSTALL}/etc/profile"
+      echo "conda activate base" >> "${HOME}/.bashrc"
+            echo "conda activate base" >> "${CRAFT_PART_INSTALL}/etc/profile"
+
+      # Do some cleanup
+      rm -rf "${HOME}/.wget-hsts" "${HOME}/.cache"
+
+      # Stage the conda directories
+      cp -r "${CONDA_DIR}" "${CRAFT_PART_INSTALL}/opt"
+      cp -r "${HOME}" "${CRAFT_PART_INSTALL}/home"
+      cp -r "${HOME}" "${CRAFT_PART_INSTALL}/tmp_home"
+
+  # TensorFlow (CUDA 12.8) is NVIDIA's prebuilt build from the NGC image, installed into the
+  # BASE conda env (pinned to numpy 1.26 with kfp removed in conda-jupyter), so it coexists
+  # in a single kernel.
+  tensorflow-ngc:
+    plugin: nil
+    after: [conda-jupyter]
+    build-packages:
+      - skopeo
+      - curl
+    build-environment:
+      - NGC_TF_IMAGE: "docker://nvcr.io/nvidia/tensorflow:25.02-tf2-py3"
+      - CONDA_DIR: "/opt/conda"
+      - PY_MM: "3.12"
+      - CUDA_DIR: "cuda-12.8"
+      # OCI-aware layer unpacker, pinned + checksum-verified (as in the tritonserver rock).
+      - UMOCI_VERSION: "0.6.0"
+      - UMOCI_SHA256: "b51c267ec394499e42c6fde47f240b7b7dba57ea49df0b5acd304378b82a3b71"
+    override-build: |
+      set -eux
+
+      # Pull NVIDIA's prebuilt TF image into an OCI layout (no Docker daemon).
+      workdir=$(mktemp -d)
+      skopeo copy --override-os linux "${NGC_TF_IMAGE}" "oci:${workdir}/oci:latest"
+
+      # Flatten the layers into a rootfs (applies whiteouts) with a pinned umoci.
+      curl -fsSL -o "${workdir}/umoci" \
+        "https://github.com/opencontainers/umoci/releases/download/v${UMOCI_VERSION}/umoci.linux.amd64"
+      echo "${UMOCI_SHA256}  ${workdir}/umoci" | sha256sum -c -
+      chmod +x "${workdir}/umoci"
+      "${workdir}/umoci" unpack --rootless --image "${workdir}/oci:latest" "${workdir}/bundle"
+      root="${workdir}/bundle/rootfs"
+
+      # NVIDIA's TF goes into the BASE conda env (present at /opt/conda after conda-jupyter),
+      # now a numpy 1.26 env with kfp removed, so TF coexists with it in a single kernel.
+      base_site="${CONDA_DIR}/lib/python${PY_MM}/site-packages"
+      before=$(ls -1 "${base_site}")
+
+      # NVIDIA's exact TF deps from PyPI (numpy is already 1.26 from conda-jupyter's mamba stack).
+      "${CONDA_DIR}/bin/pip" install --no-cache-dir \
+        protobuf==4.25.3 keras==3.3.2 ml_dtypes==0.3.2 \
+        tensorboard==2.17.1 tensorboard-data-server==0.7.2 \
+        tensorflow-io-gcs-filesystem==0.37.1 \
+        absl-py==1.0.0 astunparse==1.6.3 flatbuffers==24.3.25 gast==0.4.0 \
+        google-pasta==0.2.0 grpcio==1.62.1 h5py==3.10.0 libclang==16.0.0 \
+        opt-einsum==3.3.0 termcolor==1.1.0 wrapt==1.16.0 \
+        namex==0.0.8 optree==0.14.0
+      # tf_keras pulls TensorFlow as a dep; --no-deps stops pip replacing NVIDIA's build.
+      "${CONDA_DIR}/bin/pip" install --no-cache-dir --no-deps tf_keras==2.17.0
+
+      # Drop in NVIDIA's compiled TensorFlow (CUDA 12.8, cp312) from the image.
+      tf_pkg=$(find "${root}" -maxdepth 8 -type d -path '*packages/tensorflow' \
+        -exec test -f '{}/__init__.py' ';' -print 2>/dev/null | head -n1 || true)
+      test -n "${tf_pkg}"
+      ngc_site=$(dirname "${tf_pkg}")
+      cp -a "${ngc_site}/tensorflow" "${base_site}/"
+      cp -a "${ngc_site}/tensorflow-"*.dist-info "${base_site}/" 2>/dev/null || true
+      cp -a "${ngc_site}/tensorflow.libs" "${base_site}/" 2>/dev/null || true
+
+      # CUDA 12.8 runtime tree; drop the compat driver so we never shadow the host libcuda.
+      mkdir -p "${CRAFT_PART_INSTALL}/usr/local"
+      cp -a "${root}/usr/local/${CUDA_DIR}" "${CRAFT_PART_INSTALL}/usr/local/"
+      rm -rf "${CRAFT_PART_INSTALL}/usr/local/${CUDA_DIR}/compat"
+      ln -sf "/usr/local/${CUDA_DIR}" "${CRAFT_PART_INSTALL}/usr/local/cuda"
+      ln -sf "/usr/local/${CUDA_DIR}" "${CRAFT_PART_INSTALL}/usr/local/cuda-12"
+
+      # cuDNN / TensorRT / cuTENSOR / NCCL live outside the CUDA tree.
+      mkdir -p "${CRAFT_PART_INSTALL}/usr/lib/x86_64-linux-gnu"
+      for pat in libcudnn libnvinfer libnvonnxparser libcutensor libnccl; do
+        cp -a "${root}/usr/lib/x86_64-linux-gnu/${pat}"*.so* \
+          "${CRAFT_PART_INSTALL}/usr/lib/x86_64-linux-gnu/" 2>/dev/null || true
+      done
+      cp -a "${root}/usr/lib/x86_64-linux-gnu/libcutensor" \
+        "${CRAFT_PART_INSTALL}/usr/lib/x86_64-linux-gnu/" 2>/dev/null || true
+
+      # Several of those .so links go through /etc/alternatives; ship just the .so entries.
+      mkdir -p "${CRAFT_PART_INSTALL}/etc/alternatives"
+      cp -a "${root}"/etc/alternatives/libcudnn*_so "${root}"/etc/alternatives/libcutensor*.so* \
+        "${CRAFT_PART_INSTALL}/etc/alternatives/"
+
+      # Mount targets for NVIDIA runtime-injected driver libs/tools (never ship libcuda).
+      mkdir -p "${CRAFT_PART_INSTALL}/usr/local/nvidia/bin" \
+               "${CRAFT_PART_INSTALL}/usr/local/nvidia/lib" \
+               "${CRAFT_PART_INSTALL}/usr/local/nvidia/lib64"
+
+      # Stage the site-packages entries we added to the base env (TensorFlow + its deps).
+      mkdir -p "${CRAFT_PART_INSTALL}${base_site}"
+      after=$(ls -1 "${base_site}")
+      comm -13 <(echo "${before}") <(echo "${after}") | while read -r e; do
+        cp -a "${base_site}/${e}" "${CRAFT_PART_INSTALL}${base_site}/" 2>/dev/null || true
+      done
+
+      rm -rf "${workdir}"
+
+  # not-root user for this rock should be 'jovyan'
+  non-root-user:
+    plugin: nil
+    after: [conda-jupyter, tensorflow-ngc]
+    build-environment:
+    - HOME: "/home/jovyan"
+    - NB_UID: "1000"
+    - NB_USER: "jovyan"
+    - NB_GID: "0"
+    - USERS_GID: "100"
+    override-prime: |
+      craftctl default
+      chmod 2775 ${CRAFT_PRIME}/home/${NB_USER}
+      chmod 2775 ${CRAFT_PRIME}/tmp_home/${NB_USER}
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/home/${NB_USER}
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/bin
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/opt/conda
+      mkdir -pv ${CRAFT_PRIME}/usr/local/etc/jupyter
+      mkdir -pv ${CRAFT_PRIME}/usr/local/bin
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/usr/local/etc/jupyter
+      chown -R 584792:${NB_GID} ${CRAFT_PRIME}/usr/local/bin
