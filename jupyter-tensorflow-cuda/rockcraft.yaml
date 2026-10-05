@@ -181,34 +181,16 @@ parts:
       "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/requirements.txt
       rm -f /tmp/requirements.txt
 
-      # Install the jupyter-tensorflow-cuda requirements.
-      # Pinned to a NumPy 1.26 ABI so NVIDIA's TensorFlow (numpy 1.26) shares this single env.
+      # Pin the base env to the NumPy 1.26 ABI so NVIDIA's prebuilt TensorFlow shares this env.
       echo "numpy ==1.26.4" >> ${CONDA_DIR}/conda-meta/pinned
-      "${CONDA_BIN}/mamba" install -y -q \
-        numpy==1.26.4 \
-        pandas==2.2.3 \
-        scipy==1.12.0 \
-        scikit-learn==1.5.2 \
-        xgboost==2.1.3 \
-        cloudpickle==3.1.1 \
-        bokeh \
-        dill \
-        ipympl \
-        matplotlib \
-        seaborn \
-        scikit-image
-
+      "${CONDA_BIN}/mamba" install -y -q numpy==1.26.4
       "${CONDA_BIN}/mamba" clean -a -f -y
 
       # Create some directories for staging files
       mkdir -p "${CRAFT_PART_INSTALL}/${CONDA_DIR}" \
       "${CRAFT_PART_INSTALL}/etc" \
       "${CRAFT_PART_INSTALL}/${HOME}" \
-      "${CRAFT_PART_INSTALL}/${HOME_TMP}" \
-
-      cp $CRAFT_PART_SRC/components/example-notebook-servers/jupyter-tensorflow-cuda/requirements.txt /tmp/requirements.txt
-      "${CONDA_BIN}/pip" install --no-cache-dir -r /tmp/requirements.txt
-      rm -f /tmp/requirements.txt
+      "${CRAFT_PART_INSTALL}/${HOME_TMP}"
 
       # Write some config files for activating conda in user sessions
       chmod 2775 ${CRAFT_PART_INSTALL}/${CONDA_DIR}
