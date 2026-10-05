@@ -2,6 +2,8 @@
 # See LICENSE file for licensing details.
 import subprocess
 
+import pytest
+
 
 def test_pebble_services(rock_container):
     """Test the jupyter service and binary."""
@@ -24,9 +26,9 @@ def test_pebble_services(rock_container):
     )
 
 
-def test_cuda_libs(rock_container):
-    """Test that the NVIDIA CUDA libraries are in their correct locations."""
-    cuda_libs = [
+@pytest.mark.parametrize(
+    "cuda_lib",
+    [
         "/usr/local/cuda-12.8/lib64/libcudart.so.12",
         "/usr/local/cuda-12.8/lib64/libcublas.so.12",
         "/usr/local/cuda-12.8/lib64/libcublasLt.so.12",
@@ -39,9 +41,12 @@ def test_cuda_libs(rock_container):
         "/usr/lib/x86_64-linux-gnu/libnvinfer.so.10",
         "/usr/lib/x86_64-linux-gnu/libnvinfer_plugin.so.10",
         "/usr/lib/x86_64-linux-gnu/libcutensor.so.2",
-    ]
+    ],
+)
+def test_cuda_libs(rock_container, cuda_lib):
+    """Test that an NVIDIA CUDA library is in its correct location."""
     # -L follows symlinks, so a dangling link fails too
     subprocess.run(
-        ["docker", "exec", rock_container[1], "ls", "-L", *cuda_libs],
+        ["docker", "exec", rock_container[1], "ls", "-L", cuda_lib],
         check=True,
     )
