@@ -197,7 +197,7 @@ parts:
       echo ". /opt/conda/etc/profile.d/conda.sh" >> "${HOME}/.bashrc"
       echo ". /opt/conda/etc/profile.d/conda.sh" >> "${CRAFT_PART_INSTALL}/etc/profile"
       echo "conda activate base" >> "${HOME}/.bashrc"
-            echo "conda activate base" >> "${CRAFT_PART_INSTALL}/etc/profile"
+      echo "conda activate base" >> "${CRAFT_PART_INSTALL}/etc/profile"
 
       # Do some cleanup
       rm -rf "${HOME}/.wget-hsts" "${HOME}/.cache"
@@ -208,8 +208,7 @@ parts:
       cp -r "${HOME}" "${CRAFT_PART_INSTALL}/tmp_home"
 
   # TensorFlow (CUDA 12.8) is NVIDIA's prebuilt build from the NGC image, installed into the
-  # BASE conda env (pinned to numpy 1.26 with kfp removed in conda-jupyter), so it coexists
-  # in a single kernel.
+  # BASE conda env (pinned to numpy 1.26, so it coexists in a single kernel.
   tensorflow-ngc:
     plugin: nil
     after: [conda-jupyter]
@@ -217,11 +216,13 @@ parts:
       - skopeo
       - curl
     build-environment:
-      - NGC_TF_IMAGE: "docker://nvcr.io/nvidia/tensorflow:25.02-tf2-py3"
+      # Tag 25.02-tf2-py3, linux/amd64 manifest (not the index); skopeo rejects tag@digest refs.
+      - NGC_TF_IMAGE: "nvcr.io/nvidia/tensorflow"
+      - NGC_TF_IMAGE_SHA256: "d78d5b31b7e6cd9c902e98f73a977fcdce9d47d0bc1c685b3fa94f4187e6301c"
       - CONDA_DIR: "/opt/conda"
       - PY_MM: "3.12"
       - CUDA_DIR: "cuda-12.8"
-      # OCI-aware layer unpacker, pinned + checksum-verified (as in the tritonserver rock).
+      # OCI-aware layer unpacker, pinned + checksum-verified
       - UMOCI_VERSION: "0.6.0"
       - UMOCI_SHA256: "b51c267ec394499e42c6fde47f240b7b7dba57ea49df0b5acd304378b82a3b71"
     override-build: |
@@ -229,30 +230,42 @@ parts:
 
       # Pull NVIDIA's prebuilt TF image into an OCI layout (no Docker daemon).
       workdir=$(mktemp -d)
-      skopeo copy --override-os linux "${NGC_TF_IMAGE}" "oci:${workdir}/oci:latest"
+      skopeo copy "docker://${NGC_TF_IMAGE}@sha256:${NGC_TF_IMAGE_SHA256}" "oci:${workdir}/oci:latest"
 
       # Flatten the layers into a rootfs (applies whiteouts) with a pinned umoci.
       curl -fsSL -o "${workdir}/umoci" \
         "https://github.com/opencontainers/umoci/releases/download/v${UMOCI_VERSION}/umoci.linux.amd64"
-      echo "${UMOCI_SHA256}  ${workdir}/umoci" | sha256sum -c -
+      echo "${UMOCI_SHA256} ${workdir}/umoci" | sha256sum -c -
       chmod +x "${workdir}/umoci"
       "${workdir}/umoci" unpack --rootless --image "${workdir}/oci:latest" "${workdir}/bundle"
       root="${workdir}/bundle/rootfs"
 
       # NVIDIA's TF goes into the BASE conda env (present at /opt/conda after conda-jupyter),
-      # now a numpy 1.26 env with kfp removed, so TF coexists with it in a single kernel.
+      # now a numpy 1.26 env so TF coexists with it in a single kernel.
       base_site="${CONDA_DIR}/lib/python${PY_MM}/site-packages"
       before=$(ls -1 "${base_site}")
 
       # NVIDIA's exact TF deps from PyPI (numpy is already 1.26 from conda-jupyter's mamba stack).
       "${CONDA_DIR}/bin/pip" install --no-cache-dir \
-        protobuf==4.25.3 keras==3.3.2 ml_dtypes==0.3.2 \
-        tensorboard==2.17.1 tensorboard-data-server==0.7.2 \
+        absl-py==1.0.0 \
+        astunparse==1.6.3 \
+        flatbuffers==24.3.25 \
+        gast==0.4.0 \
+        google-pasta==0.2.0 \
+        grpcio==1.62.1 \
+        h5py==3.10.0 \
+        keras==3.3.2 \
+        libclang==16.0.0 \
+        ml_dtypes==0.3.2 \
+        namex==0.0.8 \
+        opt-einsum==3.3.0 \
+        optree==0.14.0 \
+        protobuf==4.25.3 \
+        tensorboard==2.17.1 \
+        tensorboard-data-server==0.7.2 \
         tensorflow-io-gcs-filesystem==0.37.1 \
-        absl-py==1.0.0 astunparse==1.6.3 flatbuffers==24.3.25 gast==0.4.0 \
-        google-pasta==0.2.0 grpcio==1.62.1 h5py==3.10.0 libclang==16.0.0 \
-        opt-einsum==3.3.0 termcolor==1.1.0 wrapt==1.16.0 \
-        namex==0.0.8 optree==0.14.0
+        termcolor==1.1.0 \
+        wrapt==1.16.0
       # tf_keras pulls TensorFlow as a dep; --no-deps stops pip replacing NVIDIA's build.
       "${CONDA_DIR}/bin/pip" install --no-cache-dir --no-deps tf_keras==2.17.0
 
